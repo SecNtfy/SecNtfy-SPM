@@ -12,7 +12,7 @@ import AppKit
 #endif
 
 @objcMembers
-public class SecNtfy: NSObject {
+class SecNtfy: NSObject {
     private let JsonEncoder = JSONEncoder()
     private let JsonDecoder = JSONDecoder()
     private let userDefaults = UserDefaults.standard
