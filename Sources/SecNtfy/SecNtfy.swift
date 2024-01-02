@@ -12,24 +12,24 @@ import AppKit
 #endif
 
 @objcMembers
-class SecNtfy: NSObject {
+public class SecNtfy: NSObject {
     private let JsonEncoder = JSONEncoder()
     private let JsonDecoder = JSONDecoder()
     private let userDefaults = UserDefaults.standard
-    weak var delegate: SecNtfyDelegate?
+    weak public var delegate: SecNtfyDelegate?
     
     
-    static func messaging() -> SecNtfy {
+    public func messaging() -> SecNtfy {
         return SecNtfy()
     }
     
-    @Published var apnsToken = "" {
+    @Published public var apnsToken = "" {
         didSet{
             GetDeviceToken()
         }
     }
     
-    @Published var appKey = "" {
+    @Published public var appKey = "" {
         didSet{
             //GetDeviceToken()
         }
