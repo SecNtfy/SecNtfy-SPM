@@ -11,9 +11,8 @@ import SwiftUI
 import AppKit
 #endif
 
-public class SecNtfy {
-    
-    
+@objcMembers
+class SecNtfy: NSObject {
     private let JsonEncoder = JSONEncoder()
     private let JsonDecoder = JSONDecoder()
     private let userDefaults = UserDefaults.standard
@@ -88,7 +87,7 @@ public class SecNtfy {
                 do {
                     if let error = error { } else {
                         let result = try JsonDecoder.decode(Response.self, from: data!)
-                        self.delegate?.messaging(self, didReceiveRegistrationToken: result.Token)
+                        self.delegate?.messaging(didReceiveRegistrationToken: result.Token)
                     }
                 } catch let error {
                     print("Failed task", error)

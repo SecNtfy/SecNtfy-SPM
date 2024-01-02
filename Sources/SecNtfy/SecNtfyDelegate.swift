@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol SecNtfyDelegate: AnyObject {
-    func messaging(_ messaging: SecNtfy, didReceiveRegistrationToken devToken: String?)
+    func messaging(didReceiveRegistrationToken devToken: String?)
 }
