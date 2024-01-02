@@ -11,8 +11,7 @@ import SwiftUI
 import AppKit
 #endif
 
-@objcMembers
-class SecNtfy: NSObject {
+class SecNtfy {
     private let JsonEncoder = JSONEncoder()
     private let JsonDecoder = JSONDecoder()
     private let userDefaults = UserDefaults.standard
