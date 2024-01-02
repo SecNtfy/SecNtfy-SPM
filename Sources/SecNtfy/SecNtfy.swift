@@ -19,7 +19,7 @@ public class SecNtfy: NSObject {
     weak public var delegate: SecNtfyDelegate?
     
     
-    public func messaging() -> SecNtfy {
+    public static func messaging() -> SecNtfy {
         return SecNtfy()
     }
     
