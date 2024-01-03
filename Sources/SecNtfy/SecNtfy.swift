@@ -11,7 +11,7 @@ import SwiftUI
 import AppKit
 #endif
 
-public struct SecNtfySwifty {
+public class SecNtfySwifty {
     private let JsonEncoder = JSONEncoder()
     private let JsonDecoder = JSONDecoder()
     private let userDefaults = UserDefaults.standard
