@@ -17,6 +17,9 @@ public class SecNtfySwifty {
     private let userDefaults = UserDefaults.standard
     weak public var delegate: SecNtfyDelegate?
     
+    public init() {
+        
+    }
     
     public func messaging() -> SecNtfySwifty {
         return SecNtfySwifty()
