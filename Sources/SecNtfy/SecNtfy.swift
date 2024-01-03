@@ -11,24 +11,24 @@ import SwiftUI
 import AppKit
 #endif
 
-class SecNtfy {
+public struct SecNtfySwifty {
     private let JsonEncoder = JSONEncoder()
     private let JsonDecoder = JSONDecoder()
     private let userDefaults = UserDefaults.standard
     weak public var delegate: SecNtfyDelegate?
     
     
-    public static func messaging() -> SecNtfy {
-        return SecNtfy()
+    public static func messaging() -> SecNtfySwifty {
+        return SecNtfySwifty()
     }
     
-    @Published public var apnsToken = "" {
+    public var apnsToken = "" {
         didSet{
             GetDeviceToken()
         }
     }
     
-    @Published public var appKey = "" {
+    public var appKey = "" {
         didSet{
             //GetDeviceToken()
         }
@@ -37,7 +37,6 @@ class SecNtfy {
     private func GetDeviceToken() {
         var model = ""
         var osVersion = ""
-        var result: Response? = nil
         
 #if os(iOS) || os(tvOS)
         model = UIDevice.current.model
@@ -84,9 +83,12 @@ class SecNtfy {
             
             let task = URLSession.shared.dataTask(with: request) { [self] (data, response, error) in
                 do {
-                    if let error = error { } else {
+                    if error == nil {
                         let result = try JsonDecoder.decode(Response.self, from: data!)
                         self.delegate?.messaging(didReceiveRegistrationToken: result.Token)
+                    } else {
+                        print("Failed task", error)
+                        return
                     }
                 } catch let error {
                     print("Failed task", error)
