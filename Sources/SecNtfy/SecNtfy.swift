@@ -18,7 +18,7 @@ public class SecNtfySwifty {
     weak public var delegate: SecNtfyDelegate?
     
     
-    public static func messaging() -> SecNtfySwifty {
+    public func messaging() -> SecNtfySwifty {
         return SecNtfySwifty()
     }
     
