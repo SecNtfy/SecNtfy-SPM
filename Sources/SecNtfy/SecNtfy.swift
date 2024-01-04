@@ -45,8 +45,8 @@ public class SecNtfySwifty {
             
             if (publicKey.count == 0 || privateKey.count == 0) {
                 let keyPair = try SwiftyRSA.generateRSAKeyPair(sizeInBits: 256)
-                privateKey = try keyPair.privateKey.pemString()
-                publicKey = try keyPair.publicKey.pemString()
+                privateKey = try keyPair.privateKey.base64String()
+                publicKey = try keyPair.publicKey.base64String()
                 
                 userDefaults.set(publicKey, forKey: "NTFY_PUB_KEY")
                 userDefaults.set(privateKey, forKey: "NTFY_PRIV_KEY")
@@ -152,11 +152,10 @@ public class SecNtfySwifty {
     public func DecryptMessage(msg: String) -> String {
         var decryptedMsg = ""
         do {
-            let privateKey = try PrivateKey(pemEncoded: privateKey)
+            let privateKey = try PrivateKey(base64Encoded: privateKey)
             let encrypted = try EncryptedMessage(base64Encoded: msg)
-            let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1SHA256)
+            let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1)
             
-            let data = clear.data
             decryptedMsg = try clear.string(encoding: .utf8)
         } catch let error {
             SecNtfySwifty.logger.error("Failed to DecryptMessage \(error.localizedDescription)")
