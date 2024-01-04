@@ -25,11 +25,16 @@ public class SecNtfySwifty {
     
     let logger = Logger(label: "de.sr.SecNtfy")
     
-    public init() { }
+    private var _instance: SecNtfySwifty? = nil;
     
-    public func messaging() -> SecNtfySwifty {
-        return SecNtfySwifty()
+    public func getInstance() -> SecNtfySwifty {
+        if (_instance == nil) {
+            _instance = SecNtfySwifty()
+        }
+        return _instance!
     }
+    
+    public init() { }
     
     public func configure(apiKey: String) {
         _apiKey = apiKey
