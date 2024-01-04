@@ -142,5 +142,21 @@ public class SecNtfySwifty {
             return
         }
     }
+    
+    public func DecryptMessage(msg: String) -> String {
+        var decryptedMsg = ""
+        do {
+            let privateKey = try PrivateKey(pemEncoded: privateKey)
+            let encrypted = try EncryptedMessage(base64Encoded: msg)
+            let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1)
+
+            let data = clear.data
+            decryptedMsg = try clear.string(encoding: .utf8)
+        } catch let error {
+            SecNtfySwifty.logger.error("Failed to DecryptMessage \(error.localizedDescription)")
+        }
+        
+        return decryptedMsg
+    }
 }
 
