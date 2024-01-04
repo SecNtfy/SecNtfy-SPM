@@ -22,6 +22,8 @@ public class SecNtfySwifty {
     private var _apnsToken = ""
     weak public var delegate: SecNtfyDelegate?
     
+    public init() { }
+    
     public func messaging() -> SecNtfySwifty {
         return SecNtfySwifty()
     }
