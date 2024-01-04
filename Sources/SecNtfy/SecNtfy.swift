@@ -28,8 +28,10 @@ public class SecNtfySwifty {
     
     public func getInstance() -> SecNtfySwifty {
         if (_instance == nil) {
+            logger.info("instance nilllll")
             _instance = SecNtfySwifty()
         }
+        logger.info("instance init")
         return _instance!
     }
     
