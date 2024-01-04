@@ -45,6 +45,9 @@ public class SecNtfySwifty {
             SecNtfySwifty.logger.error("🔥 - The API URL or Bundle Group is empty")
         }
         
+        SecNtfySwifty.logger.info("♻️ - API URL \(_apiUrl)")
+        SecNtfySwifty.logger.info("♻️ - Bundle Group \(bundleGroup)")
+        
         do {
             publicKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
             privateKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
