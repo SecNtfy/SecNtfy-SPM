@@ -15,7 +15,7 @@ import AppKit
 public class SecNtfySwifty {
     private let JsonEncoder = JSONEncoder()
     private let JsonDecoder = JSONDecoder()
-    private let userDefaults = UserDefaults.standard
+    private var userDefaults = UserDefaults.standard
     private var publicKey = ""
     private var privateKey = ""
     private var ntfyDevice: NTFY_Devices?
@@ -36,7 +36,8 @@ public class SecNtfySwifty {
         return _instance!
     }
     
-    public func configure(apiKey: String) {
+    public func configure(apiKey: String, bundleGroup: String) {
+        userDefaults = UserDefaults(suiteName: bundleGroup)!
         _apiKey = apiKey
         var model = ""
         var osVersion = ""
