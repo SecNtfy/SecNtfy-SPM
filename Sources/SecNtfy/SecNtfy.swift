@@ -75,7 +75,9 @@ public class SecNtfySwifty {
     }
     
     public func getNtfyToken(completionHandler: @escaping (_ ntfyToken: String?, _ error: Error?) -> ()) {
-        //log("apnsToken: \(apnsToken)")
+        if (ntfyDevice == nil) {
+            return
+        }
         PostDevice(dev: ntfyDevice!, appKey: _apiKey) { [self] ntfyToken, error in
             if (ntfyToken == nil) {
                 completionHandler(ntfyToken, error)
@@ -89,6 +91,7 @@ public class SecNtfySwifty {
         if (ntfyDevice == nil) {
             return
         }
+        logger.info("\(apnsToken)")
         ntfyDevice?.D_APN_ID = apnsToken
     }
     
