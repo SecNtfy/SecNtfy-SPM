@@ -46,7 +46,7 @@ public class SecNtfySwifty {
         if (model.contains("?unrecognized?")) {
             model = UIDevice.current.name
         }
-        osVersion = "\(UIDevice.current.systemName) \(UIDevice.current.systemVersion)"
+        osVersion = "\(UIDevice.current.systemVersion)"
 #else
         model = "Macbook"
         osVersion = "macOS"
