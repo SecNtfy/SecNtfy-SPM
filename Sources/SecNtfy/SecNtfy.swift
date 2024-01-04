@@ -154,7 +154,7 @@ public class SecNtfySwifty {
         do {
             let privateKey = try PrivateKey(pemEncoded: privateKey)
             let encrypted = try EncryptedMessage(base64Encoded: msg)
-            let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1)
+            let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1SHA256)
             
             let data = clear.data
             decryptedMsg = try clear.string(encoding: .utf8)
