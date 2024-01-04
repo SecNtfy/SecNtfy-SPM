@@ -35,8 +35,6 @@ public class SecNtfySwifty {
         return _instance!
     }
     
-    public init() { }
-    
     public func configure(apiKey: String) {
         _apiKey = apiKey
         var model = ""
