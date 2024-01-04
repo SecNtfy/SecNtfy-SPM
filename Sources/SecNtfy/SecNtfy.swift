@@ -57,8 +57,9 @@ public class SecNtfySwifty {
             privateKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
             
             if (publicKey.count == 0 || privateKey.count == 0) {
-                publicKey = try PublicKey(pemNamed: "public").pemString()
-                privateKey = try PrivateKey(pemNamed: "private").pemString()
+                let keyPair = try SwiftyRSA.generateRSAKeyPair(sizeInBits: 2048)
+                privateKey = try keyPair.privateKey.pemString()
+                publicKey = try keyPair.publicKey.pemString()
                 
                 userDefaults.set(publicKey, forKey: "NTFY_PUB_KEY")
                 userDefaults.set(privateKey, forKey: "NTFY_PRIV_KEY")
