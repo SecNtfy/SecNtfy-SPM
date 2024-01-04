@@ -15,29 +15,19 @@ public class SecNtfySwifty {
     private let JsonEncoder = JSONEncoder()
     private let JsonDecoder = JSONDecoder()
     private let userDefaults = UserDefaults.standard
+    private var publicKey = ""
+    private var privateKey = ""
+    private var ntfyDevice: NTFY_Devices?
+    private var _apiKey = ""
+    private var _apnsToken = ""
     weak public var delegate: SecNtfyDelegate?
-    
-    public init() {
-        
-    }
     
     public func messaging() -> SecNtfySwifty {
         return SecNtfySwifty()
     }
     
-    public var apnsToken = "" {
-        didSet{
-            GetDeviceToken()
-        }
-    }
-    
-    public var appKey = "" {
-        didSet{
-            //GetDeviceToken()
-        }
-    }
-    
-    private func GetDeviceToken() {
+    public func configure(apiKey: String) {
+        _apiKey = apiKey
         var model = ""
         var osVersion = ""
         
@@ -53,17 +43,30 @@ public class SecNtfySwifty {
 #endif
         
         do {
-            let publicKey = try PublicKey(pemNamed: "public").pemString()
-            let privateKey = try PrivateKey(pemNamed: "private").pemString()
+            publicKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
+            privateKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
             
-            userDefaults.set(publicKey, forKey: "NTFY_PUB_KEY")
-            userDefaults.set(privateKey, forKey: "NTFY_PRIV_KEY")
+            if (publicKey.count == 0 || privateKey.count == 0) {
+                publicKey = try PublicKey(pemNamed: "public").pemString()
+                privateKey = try PrivateKey(pemNamed: "private").pemString()
+                
+                userDefaults.set(publicKey, forKey: "NTFY_PUB_KEY")
+                userDefaults.set(privateKey, forKey: "NTFY_PRIV_KEY")
+            }
             
-            let device = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: apnsToken, D_Android_ID: "", D_PublicKey: publicKey, D_NTFY_Token: "")
-            PostDevice(dev: device, appKey: appKey)
+            ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: "", D_Android_ID: "", D_PublicKey: publicKey, D_NTFY_Token: "")
         } catch {
             print(error)
         }
+    }
+    
+    public func setApnsToken(apnsToken: String) {
+        if (ntfyDevice == nil) {
+            return
+        }
+        
+        ntfyDevice?.D_APN_ID = apnsToken
+        PostDevice(dev: ntfyDevice!, appKey: _apiKey)
     }
     
     func PostDevice(dev: NTFY_Devices, appKey: String) {
