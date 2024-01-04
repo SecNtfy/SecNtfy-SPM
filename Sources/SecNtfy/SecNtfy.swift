@@ -44,7 +44,7 @@ public class SecNtfySwifty {
             privateKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
             
             if (publicKey.count == 0 || privateKey.count == 0) {
-                let keyPair = try SwiftyRSA.generateRSAKeyPair(sizeInBits: 256)
+                let keyPair = try SwiftyRSA.generateRSAKeyPair(sizeInBits: 2048)
                 privateKey = try keyPair.privateKey.base64String()
                 publicKey = try keyPair.publicKey.base64String()
                 
