@@ -74,11 +74,11 @@ public class SecNtfySwifty {
         }
     }
     
-    public func getNtfyToken() -> String? {
+    public func getNtfyToken(completionClosure: (_ ntfyToken: String?)-> ()) {
         if (ntfyDevice == nil) {
-            return nil
+            completionClosure(nil)
         }
-        return ntfyDevice?.D_NTFY_Token!
+        completionClosure(ntfyDevice?.D_NTFY_Token!)
     }
     
     public func setApnsToken(apnsToken: String) {
