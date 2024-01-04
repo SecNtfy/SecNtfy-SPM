@@ -19,14 +19,15 @@ public class SecNtfySwifty {
     private var publicKey = ""
     private var privateKey = ""
     private var ntfyDevice: NTFY_Devices?
+    private static var _instance: SecNtfySwifty? = nil;
     private var _apiKey = ""
     private var _apnsToken = ""
     
-    let logger = Logger(label: "de.sr.SecNtfy")
+    static let logger = Logger(label: "de.sr.SecNtfy")
     
-    private var _instance: SecNtfySwifty? = nil;
+    init() { }
     
-    public func getInstance() -> SecNtfySwifty {
+    public static func getInstance() -> SecNtfySwifty {
         if (_instance == nil) {
             logger.info("instance nilllll")
             _instance = SecNtfySwifty()
@@ -66,11 +67,11 @@ public class SecNtfySwifty {
             
             ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: "", D_Android_ID: "", D_PublicKey: publicKey, D_NTFY_Token: "")
             
-            logger.info("PubKey: \(publicKey)")
-            logger.info("PrivKey: \(privateKey)")
+            SecNtfySwifty.logger.info("PubKey: \(publicKey)")
+            SecNtfySwifty.logger.info("PrivKey: \(privateKey)")
             
         } catch {
-            logger.error("\(error.localizedDescription)")
+            SecNtfySwifty.logger.error("\(error.localizedDescription)")
         }
     }
     
@@ -91,7 +92,7 @@ public class SecNtfySwifty {
         if (ntfyDevice == nil) {
             return
         }
-        logger.info("\(apnsToken)")
+        SecNtfySwifty.logger.info("\(apnsToken)")
         ntfyDevice?.D_APN_ID = apnsToken
     }
     
@@ -117,16 +118,16 @@ public class SecNtfySwifty {
                 do {
                     if error == nil {
                         let result = try JsonDecoder.decode(Response.self, from: data!)
-                        logger.error("\(result.Message) \(result.Token) \(error?.localizedDescription)")
+                        SecNtfySwifty.logger.error("\(result.Message) \(result.Token) \(error?.localizedDescription)")
                         completionHandler(result.Token, error)
                     } else {
-                        logger.error("Failed task \(error!.localizedDescription)")
+                        SecNtfySwifty.logger.error("Failed task \(error!.localizedDescription)")
                         print("Failed task", error!)
                         completionHandler(nil, error)
                         return
                     }
                 } catch let error {
-                    logger.error("Failed task \(error.localizedDescription)")
+                    SecNtfySwifty.logger.error("Failed task \(error.localizedDescription)")
                     print("Failed task", error)
                     completionHandler(nil, error)
                     return
@@ -135,7 +136,7 @@ public class SecNtfySwifty {
             
             task.resume()
         } catch let error {
-            logger.error("Failed to PostDevice \(error.localizedDescription)")
+            SecNtfySwifty.logger.error("Failed to PostDevice \(error.localizedDescription)")
             print("Failed to PostDevice", error)
             completionHandler(nil, error)
             return
