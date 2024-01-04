@@ -21,7 +21,6 @@ public class SecNtfySwifty {
     private var ntfyDevice: NTFY_Devices?
     private var _apiKey = ""
     private var _apnsToken = ""
-    weak public var delegate: SecNtfyDelegate?
     
     let logger = Logger(label: "de.sr.SecNtfy")
     
@@ -75,6 +74,13 @@ public class SecNtfySwifty {
         }
     }
     
+    public func getNtfyToken() -> String? {
+        if (ntfyDevice == nil) {
+            return nil
+        }
+        return ntfyDevice?.D_NTFY_Token!
+    }
+    
     public func setApnsToken(apnsToken: String) {
         if (ntfyDevice == nil) {
             return
@@ -107,8 +113,8 @@ public class SecNtfySwifty {
                 do {
                     if error == nil {
                         let result = try JsonDecoder.decode(Response.self, from: data!)
-                        logger.error("\(result.Message)")
-                        self.delegate?.messaging(didReceiveRegistrationToken: result.Token)
+                        logger.error("\(result.Message) \(result.Token)")
+                        ntfyDevice?.D_NTFY_Token = result.Token
                     } else {
                         logger.error("Failed task \(error!.localizedDescription)")
                         print("Failed task", error!)
