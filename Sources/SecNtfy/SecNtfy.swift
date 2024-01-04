@@ -36,8 +36,31 @@ public class SecNtfySwifty {
         return _instance!
     }
     
-    public func configure(apiKey: String, bundleGroup: String) {
+    public func initialize(bundleGroup: String) {
         userDefaults = UserDefaults(suiteName: bundleGroup)!
+        
+        do {
+            publicKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
+            privateKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
+            
+            if (publicKey.count == 0 || privateKey.count == 0) {
+                let keyPair = try SwiftyRSA.generateRSAKeyPair(sizeInBits: 256)
+                privateKey = try keyPair.privateKey.pemString()
+                publicKey = try keyPair.publicKey.pemString()
+                
+                userDefaults.set(publicKey, forKey: "NTFY_PUB_KEY")
+                userDefaults.set(privateKey, forKey: "NTFY_PRIV_KEY")
+            }
+            
+            SecNtfySwifty.logger.info("PubKey: \(publicKey)")
+            SecNtfySwifty.logger.info("PrivKey: \(privateKey)")
+            
+        } catch {
+            SecNtfySwifty.logger.error("\(error.localizedDescription)")
+        }
+    }
+    
+    public func configure(apiKey: String) {
         _apiKey = apiKey
         var model = ""
         var osVersion = ""
@@ -52,28 +75,10 @@ public class SecNtfySwifty {
         model = "Macbook"
         osVersion = "macOS"
 #endif
+        ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: "", D_Android_ID: "", D_PublicKey: publicKey, D_NTFY_Token: "")
         
-        do {
-            publicKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
-            privateKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
-            
-            if (publicKey.count == 0 || privateKey.count == 0) {
-                let keyPair = try SwiftyRSA.generateRSAKeyPair(sizeInBits: 2048)
-                privateKey = try keyPair.privateKey.pemString()
-                publicKey = try keyPair.publicKey.pemString()
-                
-                userDefaults.set(publicKey, forKey: "NTFY_PUB_KEY")
-                userDefaults.set(privateKey, forKey: "NTFY_PRIV_KEY")
-            }
-            
-            ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: "", D_Android_ID: "", D_PublicKey: publicKey, D_NTFY_Token: "")
-            
-            SecNtfySwifty.logger.info("PubKey: \(publicKey)")
-            SecNtfySwifty.logger.info("PrivKey: \(privateKey)")
-            
-        } catch {
-            SecNtfySwifty.logger.error("\(error.localizedDescription)")
-        }
+        SecNtfySwifty.logger.info("PubKey: \(publicKey)")
+        SecNtfySwifty.logger.info("PrivKey: \(privateKey)")
     }
     
     public func getNtfyToken(completionHandler: @escaping (_ ntfyToken: String?, _ error: Error?) -> ()) {
@@ -150,7 +155,7 @@ public class SecNtfySwifty {
             let privateKey = try PrivateKey(pemEncoded: privateKey)
             let encrypted = try EncryptedMessage(base64Encoded: msg)
             let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1)
-
+            
             let data = clear.data
             decryptedMsg = try clear.string(encoding: .utf8)
         } catch let error {
