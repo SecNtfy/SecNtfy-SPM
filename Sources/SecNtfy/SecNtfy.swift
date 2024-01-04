@@ -74,24 +74,25 @@ public class SecNtfySwifty {
         }
     }
     
-    public func getNtfyToken(completionHandler: (_ ntfyToken: String?) -> ()) {
-        if (ntfyDevice == nil) {
-            completionHandler(nil)
+    public func getNtfyToken(completionHandler: @escaping (_ ntfyToken: String?, _ error: Error?) -> ()) {
+        //log("apnsToken: \(apnsToken)")
+        PostDevice(dev: ntfyDevice!, appKey: _apiKey) { [self] ntfyToken, error in
+            if (ntfyToken == nil) {
+                completionHandler(ntfyToken, error)
+            }
+            ntfyDevice?.D_NTFY_Token = ntfyToken
+            completionHandler(ntfyToken, error)
         }
-        completionHandler(ntfyDevice?.D_NTFY_Token!)
     }
     
     public func setApnsToken(apnsToken: String) {
         if (ntfyDevice == nil) {
             return
         }
-        
         ntfyDevice?.D_APN_ID = apnsToken
-        //log("apnsToken: \(apnsToken)")
-        PostDevice(dev: ntfyDevice!, appKey: _apiKey)
     }
     
-    func PostDevice(dev: NTFY_Devices, appKey: String) {
+    func PostDevice(dev: NTFY_Devices, appKey: String, completionHandler: @escaping (_ ntfyToken: String?, _ error: Error?) -> ()) {
         let urlString = "http://localhost:5137/App/RegisterDevice"
         
         guard let url = URL(string: urlString) else {
@@ -113,16 +114,18 @@ public class SecNtfySwifty {
                 do {
                     if error == nil {
                         let result = try JsonDecoder.decode(Response.self, from: data!)
-                        logger.error("\(result.Message) \(result.Token)")
-                        ntfyDevice?.D_NTFY_Token = result.Token
+                        logger.error("\(result.Message) \(result.Token) \(error?.localizedDescription)")
+                        completionHandler(result.Token, error)
                     } else {
                         logger.error("Failed task \(error!.localizedDescription)")
                         print("Failed task", error!)
+                        completionHandler(nil, error)
                         return
                     }
                 } catch let error {
                     logger.error("Failed task \(error.localizedDescription)")
                     print("Failed task", error)
+                    completionHandler(nil, error)
                     return
                 }
             }
@@ -131,6 +134,7 @@ public class SecNtfySwifty {
         } catch let error {
             logger.error("Failed to PostDevice \(error.localizedDescription)")
             print("Failed to PostDevice", error)
+            completionHandler(nil, error)
             return
         }
     }
