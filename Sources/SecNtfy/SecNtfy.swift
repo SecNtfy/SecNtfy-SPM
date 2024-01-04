@@ -3,6 +3,7 @@
 
 import Foundation
 import SwiftyRSA
+import Logging
 
 #if canImport(UIKit)
 import UIKit
@@ -21,6 +22,8 @@ public class SecNtfySwifty {
     private var _apiKey = ""
     private var _apnsToken = ""
     weak public var delegate: SecNtfyDelegate?
+    
+    let logger = Logger(label: "de.sr.SecNtfy")
     
     public init() { }
     
@@ -57,8 +60,12 @@ public class SecNtfySwifty {
             }
             
             ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: "", D_Android_ID: "", D_PublicKey: publicKey, D_NTFY_Token: "")
+            
+            logger.info("PubKey: \(publicKey)")
+            logger.info("PrivKey: \(privateKey)")
+            
         } catch {
-            print(error)
+            logger.error("\(error.localizedDescription)")
         }
     }
     
@@ -68,6 +75,7 @@ public class SecNtfySwifty {
         }
         
         ntfyDevice?.D_APN_ID = apnsToken
+        //log("apnsToken: \(apnsToken)")
         PostDevice(dev: ntfyDevice!, appKey: _apiKey)
     }
     
@@ -93,12 +101,15 @@ public class SecNtfySwifty {
                 do {
                     if error == nil {
                         let result = try JsonDecoder.decode(Response.self, from: data!)
+                        logger.error("\(result.Message)")
                         self.delegate?.messaging(didReceiveRegistrationToken: result.Token)
                     } else {
-                        print("Failed task", error)
+                        logger.error("Failed task \(error!.localizedDescription)")
+                        print("Failed task", error!)
                         return
                     }
                 } catch let error {
+                    logger.error("Failed task \(error.localizedDescription)")
                     print("Failed task", error)
                     return
                 }
@@ -106,6 +117,7 @@ public class SecNtfySwifty {
             
             task.resume()
         } catch let error {
+            logger.error("Failed to PostDevice \(error.localizedDescription)")
             print("Failed to PostDevice", error)
             return
         }

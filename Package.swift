@@ -13,14 +13,15 @@ let package = Package(
             targets: ["SecNtfy"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/TakeScoop/SwiftyRSA.git", from: "1.8.0")
+        .package(url: "https://github.com/TakeScoop/SwiftyRSA.git", from: "1.8.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.5.3")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "SecNtfy",
-            dependencies: ["SwiftyRSA"]),
+            dependencies: ["SwiftyRSA", .product(name: "Logging", package: "swift-log")]),
         .testTarget(
             name: "SecNtfyTests",
             dependencies: ["SecNtfy"]),
