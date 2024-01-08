@@ -75,7 +75,7 @@ public class SecNtfySwifty {
         var osVersion = ""
         
 #if os(iOS) || os(tvOS)
-        model = UIDevice.current.model
+        model = UIDevice().type.rawValue
         if (model.contains("?unrecognized?")) {
             model = UIDevice.current.name
         }
