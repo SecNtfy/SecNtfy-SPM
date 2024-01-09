@@ -16,13 +16,14 @@ public class SecNtfySwifty {
     private let JsonEncoder = JSONEncoder()
     private let JsonDecoder = JSONDecoder()
     private var userDefaults = UserDefaults.standard
-    private var publicKey = ""
-    private var privateKey = ""
-    private var ntfyDevice: NTFY_Devices?
-    private static var _instance: SecNtfySwifty? = nil;
+    private var _publicKey = ""
+    private var _privateKey = ""
     private var _apiKey = ""
     private var _apnsToken = ""
     private var _apiUrl = ""
+    private var _deviceToken = ""
+    private var ntfyDevice: NTFY_Devices?
+    private static var _instance: SecNtfySwifty? = nil;
     
     static let logger = Logger(label: "de.sr.SecNtfy")
     
@@ -38,7 +39,6 @@ public class SecNtfySwifty {
     }
     
     public func initialize(apiUrl: String = "http://localhost:5137", bundleGroup: String = "de.sr.SecNtfy") {
-        _apiUrl = apiUrl
         userDefaults = UserDefaults(suiteName: bundleGroup)!
         
         if (_apiUrl.count == 0 || bundleGroup.count == 0) {
@@ -49,16 +49,23 @@ public class SecNtfySwifty {
         SecNtfySwifty.logger.info("♻️ - Bundle Group \(bundleGroup)")
         
         do {
-            publicKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
-            privateKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
+            _publicKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
+            _privateKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
+            _apiUrl = userDefaults.string(forKey: "NTFY_API_URL") ?? ""
+            _deviceToken = userDefaults.string(forKey: "NTFY_DEVICE_TOKEN") ?? ""
             
-            if (publicKey.count == 0 || privateKey.count == 0) {
+            if (_apiKey.isEmpty) {
+                _apiUrl = apiUrl
+                userDefaults.set(_apiUrl, forKey: "NTFY_API_URL")
+            }
+            
+            if (_publicKey.isEmpty || _privateKey.isEmpty) {
                 let keyPair = try SwiftyRSA.generateRSAKeyPair(sizeInBits: 2048)
-                privateKey = try keyPair.privateKey.base64String()
-                publicKey = try keyPair.publicKey.base64String()
+                _privateKey = try keyPair.privateKey.base64String()
+                _publicKey = try keyPair.publicKey.base64String()
                 
-                userDefaults.set(publicKey, forKey: "NTFY_PUB_KEY")
-                userDefaults.set(privateKey, forKey: "NTFY_PRIV_KEY")
+                userDefaults.set(_publicKey, forKey: "NTFY_PUB_KEY")
+                userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
             }
             
             //SecNtfySwifty.logger.info("PubKey: \(publicKey)")
@@ -84,7 +91,7 @@ public class SecNtfySwifty {
         model = "Macbook"
         osVersion = "macOS"
 #endif
-        ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: "", D_Android_ID: "", D_PublicKey: publicKey, D_NTFY_Token: "")
+        ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: "", D_Android_ID: "", D_PublicKey: _publicKey, D_NTFY_Token: "")
         
         //SecNtfySwifty.logger.info("PubKey: \(publicKey)")
         //SecNtfySwifty.logger.info("PrivKey: \(privateKey)")
@@ -99,6 +106,12 @@ public class SecNtfySwifty {
                 completionHandler(ntfyToken, error)
             }
             ntfyDevice?.D_NTFY_Token = ntfyToken
+            
+            if (_deviceToken.isEmpty || _deviceToken != ntfyToken) {
+                _deviceToken = ntfyToken!
+                userDefaults.set(_deviceToken, forKey: "NTFY_DEVICE_TOKEN")
+            }
+            
             completionHandler(ntfyToken, error)
         }
     }
@@ -161,7 +174,7 @@ public class SecNtfySwifty {
     public func DecryptMessage(msg: String) -> String {
         var decryptedMsg = ""
         do {
-            let privateKey = try PrivateKey(base64Encoded: privateKey)
+            let privateKey = try PrivateKey(base64Encoded: _privateKey)
             let encrypted = try EncryptedMessage(base64Encoded: msg)
             let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1)
             
@@ -171,6 +184,51 @@ public class SecNtfySwifty {
         }
         
         return decryptedMsg
+    }
+    
+    public func MessageReceived(msgId: String) {
+        let urlString = "\(_apiUrl)/Message/Receive/\(msgId)"
+        
+        if (_deviceToken.isEmpty) {
+            return
+        }
+        
+        if (msgId.isEmpty) {
+            return
+        }
+        
+        guard let url = URL(string: urlString) else {
+            return
+        }
+        
+        do {
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")  // the request is JSON
+            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")        // the expected response is also JSON
+            request.setValue("\(_deviceToken)", forHTTPHeaderField: "X-NTFYME-DEVICE-KEY")        // the expected response is also JSON
+            JsonEncoder.outputFormatting = .prettyPrinted
+            
+            let task = URLSession.shared.dataTask(with: request) { [self] (data, response, error) in
+                do {
+                    if error == nil {
+                        let result = try JsonDecoder.decode(Response.self, from: data!)
+                        SecNtfySwifty.logger.error("♻️ - \(result.Message) \(result.Token) \(error?.localizedDescription)")
+                    } else {
+                        SecNtfySwifty.logger.error("🔥 - Failed task \(error!.localizedDescription)")
+                        return
+                    }
+                } catch let error {
+                    SecNtfySwifty.logger.error("🔥 - Failed task \(error.localizedDescription)")
+                    return
+                }
+            }
+            
+            task.resume()
+        } catch let error {
+            SecNtfySwifty.logger.error("🔥 - Failed to MessageReceived \(error.localizedDescription)")
+            return
+        }
     }
 }
 
