@@ -38,7 +38,7 @@ public class SecNtfySwifty {
         return _instance!
     }
     
-    public func initialize(apiUrl: String = "http://localhost:5137", bundleGroup: String = "de.sr.SecNtfy") {
+    public func initialize(apiUrl: String = "", bundleGroup: String = "de.sr.SecNtfy") {
         userDefaults = UserDefaults(suiteName: bundleGroup)!
         
         if (_apiUrl.count == 0 || bundleGroup.count == 0) {
@@ -54,7 +54,7 @@ public class SecNtfySwifty {
             _apiUrl = userDefaults.string(forKey: "NTFY_API_URL") ?? ""
             _deviceToken = userDefaults.string(forKey: "NTFY_DEVICE_TOKEN") ?? ""
             
-            if (_apiKey.isEmpty) {
+            if (_apiKey.isEmpty && !apiUrl.isEmpty) {
                 _apiUrl = apiUrl
                 userDefaults.set(_apiUrl, forKey: "NTFY_API_URL")
             }
