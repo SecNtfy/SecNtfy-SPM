@@ -41,13 +41,6 @@ public class SecNtfySwifty {
     public func initialize(apiUrl: String = "", bundleGroup: String = "de.sr.SecNtfy") {
         userDefaults = UserDefaults(suiteName: bundleGroup)!
         
-        if (_apiUrl.count == 0 || bundleGroup.count == 0) {
-            SecNtfySwifty.logger.error("🔥 - The API URL or Bundle Group is empty")
-        }
-        
-        SecNtfySwifty.logger.info("♻️ - API URL \(_apiUrl)")
-        SecNtfySwifty.logger.info("♻️ - Bundle Group \(bundleGroup)")
-        
         do {
             _publicKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
             _privateKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
@@ -58,6 +51,13 @@ public class SecNtfySwifty {
                 _apiUrl = apiUrl
                 userDefaults.set(_apiUrl, forKey: "NTFY_API_URL")
             }
+            
+            if (_apiUrl.count == 0 || bundleGroup.count == 0) {
+                SecNtfySwifty.logger.error("🔥 - The API URL or Bundle Group is empty")
+            }
+            
+            SecNtfySwifty.logger.info("♻️ - API URL \(_apiUrl)")
+            SecNtfySwifty.logger.info("♻️ - Bundle Group \(bundleGroup)")
             
             if (_publicKey.isEmpty || _privateKey.isEmpty) {
                 let keyPair = try SwiftyRSA.generateRSAKeyPair(sizeInBits: 2048)
