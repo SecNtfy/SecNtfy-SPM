@@ -107,7 +107,7 @@ public class SecNtfySwifty {
             }
             ntfyDevice?.D_NTFY_Token = ntfyToken
             
-            if (_deviceToken.isEmpty || _deviceToken != ntfyToken) {
+            if (ntfyToken != nil && (_deviceToken.isEmpty || _deviceToken != ntfyToken)) {
                 _deviceToken = ntfyToken!
                 userDefaults.set(_deviceToken, forKey: "NTFY_DEVICE_TOKEN")
             }
