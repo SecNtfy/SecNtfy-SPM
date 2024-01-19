@@ -171,7 +171,7 @@ public class SecNtfySwifty {
         }
     }
     
-    public func DecryptMessage(msg: String) -> String {
+    public func DecryptMessage(msg: String, completionHandler: @escaping (_ decryptedMsg: String?, _ error: Error?) -> ()) {
         var decryptedMsg = ""
         do {
             let privateKey = try PrivateKey(base64Encoded: _privateKey)
@@ -181,9 +181,9 @@ public class SecNtfySwifty {
             decryptedMsg = try clear.string(encoding: .utf8)
         } catch let error {
             SecNtfySwifty.logger.error("🔥 - Failed to DecryptMessage \(error.localizedDescription)")
+            completionHandler(nil, error)
         }
-        
-        return decryptedMsg
+        completionHandler(decryptedMsg, nil)
     }
     
     public func MessageReceived(msgId: String) {
