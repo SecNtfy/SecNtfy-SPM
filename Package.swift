@@ -14,14 +14,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/TakeScoop/SwiftyRSA.git", from: "1.8.0"),
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.5.3")
+        .package(url: "https://github.com/SwiftyBeaver/SwiftyBeaver.git", .upToNextMajor(from: "2.0.0")),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "SecNtfy",
-            dependencies: ["SwiftyRSA", .product(name: "Logging", package: "swift-log")]),
+            dependencies: ["SwiftyRSA", "SwiftyBeaver"]),
         .testTarget(
             name: "SecNtfyTests",
             dependencies: ["SecNtfy"]),

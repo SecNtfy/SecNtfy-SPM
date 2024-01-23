@@ -3,7 +3,7 @@
 
 import Foundation
 import SwiftyRSA
-import Logging
+import SwiftyBeaver
 
 #if canImport(UIKit)
 import UIKit
@@ -24,17 +24,23 @@ public class SecNtfySwifty {
     private var _deviceToken = ""
     private var ntfyDevice: NTFY_Devices?
     private static var _instance: SecNtfySwifty? = nil;
-    
-    static let logger = Logger(label: "de.sr.SecNtfy")
+    static var log = SwiftyBeaver.self
     
     init() { }
     
     public static func getInstance() -> SecNtfySwifty {
         if (_instance == nil) {
-            logger.info("♻️ - instance nil, start init process")
+            // add log destinations. at least one is needed!
+            let console = ConsoleDestination()  // log to Xcode Console
+            let file = FileDestination()  // log to default swiftybeaver.log file
+            console.format = "$DHH:mm:ss$d $L $M"
+            // add the destinations to SwiftyBeaver
+            log.addDestination(console)
+            log.addDestination(file)
+            log.info("♻️ - instance nil, start init process")
             _instance = SecNtfySwifty()
         }
-        logger.info("♻️ - instance init")
+        log.info("♻️ - instance init")
         return _instance!
     }
     
@@ -53,11 +59,11 @@ public class SecNtfySwifty {
             }
             
             if (_apiUrl.count == 0 || bundleGroup.count == 0) {
-                SecNtfySwifty.logger.error("🔥 - The API URL or Bundle Group is empty")
+                SecNtfySwifty.log.error("🔥 - The API URL or Bundle Group is empty")
             }
             
-            SecNtfySwifty.logger.info("♻️ - API URL \(_apiUrl)")
-            SecNtfySwifty.logger.info("♻️ - Bundle Group \(bundleGroup)")
+            SecNtfySwifty.log.info("♻️ - API URL \(_apiUrl)")
+            SecNtfySwifty.log.info("♻️ - Bundle Group \(bundleGroup)")
             
             if (_publicKey.isEmpty || _privateKey.isEmpty) {
                 let keyPair = try SwiftyRSA.generateRSAKeyPair(sizeInBits: 2048)
@@ -68,11 +74,11 @@ public class SecNtfySwifty {
                 userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
             }
             
-            //SecNtfySwifty.logger.info("PubKey: \(publicKey)")
-            //SecNtfySwifty.logger.info("PrivKey: \(privateKey)")
+            SecNtfySwifty.log.info("PubKey: \(_publicKey)")
+            SecNtfySwifty.log.info("PrivKey: \(_privateKey)")
             
         } catch {
-            SecNtfySwifty.logger.error("🔥 - \(error.localizedDescription)")
+            SecNtfySwifty.log.error("🔥 - \(error.localizedDescription)")
         }
     }
     
@@ -93,13 +99,16 @@ public class SecNtfySwifty {
 #endif
         ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: "", D_Android_ID: "", D_PublicKey: _publicKey, D_NTFY_Token: "")
         
-        //SecNtfySwifty.logger.info("PubKey: \(publicKey)")
-        //SecNtfySwifty.logger.info("PrivKey: \(privateKey)")
+        SecNtfySwifty.log.info("Model: \(model)")
+        SecNtfySwifty.log.info("OS: \(osVersion)")
+        
+        SecNtfySwifty.log.info("PubKey: \(_publicKey)")
+        SecNtfySwifty.log.info("PrivKey: \(_privateKey)")
     }
     
     public func getNtfyToken(completionHandler: @escaping (_ ntfyToken: String?, _ error: Error?) -> ()) {
         if (ntfyDevice == nil) {
-            return
+            completionHandler(nil, NtfyError.noDevice)
         }
         PostDevice(dev: ntfyDevice!, appKey: _apiKey) { [self] ntfyToken, error in
             if (ntfyToken == nil) {
@@ -120,7 +129,7 @@ public class SecNtfySwifty {
         if (ntfyDevice == nil) {
             return
         }
-        //SecNtfySwifty.logger.info("\(apnsToken)")
+        SecNtfySwifty.log.info("\(apnsToken)")
         ntfyDevice?.D_APN_ID = apnsToken
     }
     
@@ -128,6 +137,7 @@ public class SecNtfySwifty {
         let urlString = "\(_apiUrl)/App/RegisterDevice"
         
         guard let url = URL(string: urlString) else {
+            completionHandler(nil, NtfyError.unsuppotedURL)
             return
         }
         
@@ -146,16 +156,16 @@ public class SecNtfySwifty {
                 do {
                     if error == nil {
                         let result = try JsonDecoder.decode(Response.self, from: data!)
-                        SecNtfySwifty.logger.error("♻️ - \(result.Message) \(result.Token) \(error?.localizedDescription)")
+                        SecNtfySwifty.log.error("♻️ - \(result.Message) \(result.Token) \(error?.localizedDescription)")
                         completionHandler(result.Token, error)
                     } else {
-                        SecNtfySwifty.logger.error("🔥 - Failed task \(error!.localizedDescription)")
+                        SecNtfySwifty.log.error("🔥 - Failed task \(error!.localizedDescription)")
                         print("Failed task", error!)
                         completionHandler(nil, error)
                         return
                     }
                 } catch let error {
-                    SecNtfySwifty.logger.error("🔥 - Failed task \(error.localizedDescription)")
+                    SecNtfySwifty.log.error("🔥 - Failed task \(error.localizedDescription)")
                     print("Failed task", error)
                     completionHandler(nil, error)
                     return
@@ -164,7 +174,7 @@ public class SecNtfySwifty {
             
             task.resume()
         } catch let error {
-            SecNtfySwifty.logger.error("🔥 - Failed to PostDevice \(error.localizedDescription)")
+            SecNtfySwifty.log.error("🔥 - Failed to PostDevice \(error.localizedDescription)")
             print("Failed to PostDevice", error)
             completionHandler(nil, error)
             return
@@ -180,7 +190,7 @@ public class SecNtfySwifty {
             
             decryptedMsg = try clear.string(encoding: .utf8)
         } catch let error {
-            SecNtfySwifty.logger.error("🔥 - Failed to DecryptMessage \(error.localizedDescription)")
+            SecNtfySwifty.log.error("🔥 - Failed to DecryptMessage \(error.localizedDescription)")
             return "🔥 - Failed to DecryptMessage \(error.localizedDescription)"
         }
         return decryptedMsg
@@ -190,14 +200,17 @@ public class SecNtfySwifty {
         let urlString = "\(_apiUrl)/Message/Receive/\(msgId)"
         
         if (_deviceToken.isEmpty) {
+            SecNtfySwifty.log.error("🔥 - Device Token is Empty")
             return
         }
         
         if (msgId.isEmpty) {
+            SecNtfySwifty.log.error("🔥 - MessageId is Empty")
             return
         }
         
         guard let url = URL(string: urlString) else {
+            SecNtfySwifty.log.error("🔥 - URL is not valid!")
             return
         }
         
@@ -213,20 +226,20 @@ public class SecNtfySwifty {
                 do {
                     if error == nil {
                         let result = try JsonDecoder.decode(Response.self, from: data!)
-                        SecNtfySwifty.logger.error("♻️ - \(result.Message) \(result.Token) \(error?.localizedDescription)")
+                        SecNtfySwifty.log.error("♻️ - \(result.Message) \(result.Token) \(error?.localizedDescription)")
                     } else {
-                        SecNtfySwifty.logger.error("🔥 - Failed task \(error!.localizedDescription)")
+                        SecNtfySwifty.log.error("🔥 - Failed task \(error!.localizedDescription)")
                         return
                     }
                 } catch let error {
-                    SecNtfySwifty.logger.error("🔥 - Failed task \(error.localizedDescription)")
+                    SecNtfySwifty.log.error("🔥 - Failed task \(error.localizedDescription)")
                     return
                 }
             }
             
             task.resume()
         } catch let error {
-            SecNtfySwifty.logger.error("🔥 - Failed to MessageReceived \(error.localizedDescription)")
+            SecNtfySwifty.log.error("🔥 - Failed to MessageReceived \(error.localizedDescription)")
             return
         }
     }
