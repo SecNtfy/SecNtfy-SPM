@@ -75,7 +75,7 @@ public class SecNtfySwifty {
             }
             
             SecNtfySwifty.log.info("PubKey: \(_publicKey)")
-            SecNtfySwifty.log.info("PrivKey: \(_privateKey)")
+            SecNtfySwifty.log.info("PrivKey: \(anonymiesString(input: _privateKey))")
             
         } catch {
             SecNtfySwifty.log.error("🔥 - \(error.localizedDescription)")
@@ -103,7 +103,7 @@ public class SecNtfySwifty {
         SecNtfySwifty.log.info("OS: \(osVersion)")
         
         SecNtfySwifty.log.info("PubKey: \(_publicKey)")
-        SecNtfySwifty.log.info("PrivKey: \(_privateKey)")
+        SecNtfySwifty.log.info("PrivKey: \(anonymiesString(input: _privateKey))")
     }
     
     public func getNtfyToken(completionHandler: @escaping (_ ntfyToken: String?, _ error: Error?) -> ()) {
@@ -129,7 +129,7 @@ public class SecNtfySwifty {
         if (ntfyDevice == nil) {
             return
         }
-        SecNtfySwifty.log.info("\(apnsToken)")
+        SecNtfySwifty.log.info("\(anonymiesString(input: apnsToken))")
         ntfyDevice?.D_APN_ID = apnsToken
     }
     
@@ -242,6 +242,26 @@ public class SecNtfySwifty {
             SecNtfySwifty.log.error("🔥 - Failed to MessageReceived \(error.localizedDescription)")
             return
         }
+    }
+    
+    private func anonymiesString(input: String) -> String {
+        guard input.count > 3 else {
+            return input
+        }
+
+        let startIndex = input.startIndex
+        let endIndex = input.endIndex
+
+        // Extract the first three characters
+        let firstThree = input[startIndex..<input.index(startIndex, offsetBy: 3)]
+
+        // Extract the last character
+        let lastCharacter = input[input.index(endIndex, offsetBy: -1)]
+
+        // Create the masked string with five asterisk symbols
+        let maskedString = firstThree + "*****" + String(lastCharacter)
+
+        return maskedString
     }
 }
 
