@@ -245,23 +245,23 @@ public class SecNtfySwifty {
     }
     
     private func anonymiesString(input: String) -> String {
-        guard input.count > 3 else {
+        guard input.count > 10 else {
             return input
         }
-
+        
         let startIndex = input.startIndex
         let endIndex = input.endIndex
-
+        
         // Extract the first three characters
-        let firstThree = input[startIndex..<input.index(startIndex, offsetBy: 3)]
-
-        // Extract the last character
-        let lastCharacter = input[input.index(endIndex, offsetBy: -1)]
-
-        // Create the masked string with five asterisk symbols
-        let maskedString = firstThree + "*****" + String(lastCharacter)
-
-        return maskedString
+        let firstThree = input[startIndex..<input.index(startIndex, offsetBy: 5)]
+        
+        // Extract the last five characters
+        let lastFive = input[input.index(endIndex, offsetBy: -5)..<endIndex]
+        
+        // Create the processed string
+        let processedString = "" + firstThree + "*****" + lastFive + ""
+        
+        return processedString
     }
 }
 
