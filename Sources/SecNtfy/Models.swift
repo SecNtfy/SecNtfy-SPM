@@ -12,7 +12,7 @@ import UIKit
 import AppKit
 #endif
 
-struct NTFY_Devices : Codable {
+struct NTFY_Devices : Sendable, Codable {
     
     var D_ID: Int?
     /// <summary>
@@ -61,7 +61,7 @@ struct NTFY_Devices : Codable {
     }
 }
 
-struct Response : Codable {
+struct Response : Sendable, Codable {
     var Message: String?
     var Token: String?
     var Status: Int

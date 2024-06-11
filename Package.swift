@@ -21,7 +21,12 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "SecNtfy",
-            dependencies: ["SwiftyRSA", "SwiftyBeaver"]),
+            dependencies: ["SwiftyRSA", "SwiftyBeaver"],
+            swiftSettings: [
+                /// Xcode 15. Remove `=targeted` to use the default `complete`.
+                .enableExperimentalFeature("StrictConcurrency")
+            ]
+        ),
         .testTarget(
             name: "SecNtfyTests",
             dependencies: ["SecNtfy"]),
