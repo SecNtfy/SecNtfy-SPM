@@ -109,7 +109,7 @@ public class SecNtfySwifty {
     }
     
     @MainActor public func getNtfyToken(completionHandler: @escaping @Sendable (_ ntfyToken: String?, _ error: Error?) -> ()) {
-        if (ntfyDevice.D_APP_ID == 0) {
+        if (ntfyDevice.D_OS_Version?.count == 0) {
             completionHandler(nil, NtfyError.noDevice)
         }
         PostDevice(dev: ntfyDevice, appKey: _apiKey) { ntfyToken, _bundleGroup, error in
@@ -137,7 +137,7 @@ public class SecNtfySwifty {
     }
     
     public func setApnsToken(apnsToken: String) {
-        if (ntfyDevice.D_APP_ID == 0) {
+        if (ntfyDevice.D_OS_Version?.count == 0) {
             return
         }
         SecNtfySwifty.log.info("\(anonymiesString(input: apnsToken))")
