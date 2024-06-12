@@ -155,8 +155,8 @@ public class SecNtfySwifty {
             return
         }
         
-        print(appKey)
-        print(dev)
+        //print(appKey)
+        //print(dev)
         
         do {
             var request = URLRequest(url: url)
