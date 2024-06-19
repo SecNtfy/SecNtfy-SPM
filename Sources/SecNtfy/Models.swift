@@ -13,9 +13,9 @@ import AppKit
 #endif
 
 public struct ResultHandler : Codable {
-    var token: String?
-    var bundleGroup: String?
-    var error: Error?
+    public var token: String?
+    public var bundleGroup: String?
+    public var error: Error?
     
     enum CodingKeys: String, CodingKey {
         case token = "token"
