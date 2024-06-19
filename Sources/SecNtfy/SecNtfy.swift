@@ -22,7 +22,7 @@ public class SecNtfySwifty {
     private var _apnsToken = ""
     private var _apiUrl = ""
     private var _bundleGroup = ""
-    @MainActor private var _deviceToken: String = ""
+    private var _deviceToken: String = ""
     private var ntfyDevice: NTFY_Devices = NTFY_Devices()
     static let log = SwiftyBeaver.self
     
@@ -108,28 +108,26 @@ public class SecNtfySwifty {
         SecNtfySwifty.log.info("PrivKey: \(anonymiesString(input: _privateKey))")
     }
     
-    @MainActor public func getNtfyToken(completionHandler: @escaping @Sendable (_ ntfyToken: String?, _ error: Error?) -> ()) {
+    public func getNtfyToken() async -> ResultHandler {
         if (ntfyDevice.D_OS_Version?.count == 0) {
-            completionHandler(nil, NtfyError.noDevice)
+            return ResultHandler(token: nil, error: NtfyError.noDevice)
         }
-        PostDevice(dev: ntfyDevice, appKey: _apiKey) { ntfyToken, _bundleGroup, error in
-            
-            let userDefaults = UserDefaults(suiteName: _bundleGroup)!
-            if (ntfyToken == nil) {
-                completionHandler(ntfyToken, error)
-            }
-            
-            //ntfyDevice.D_NTFY_Token = ntfyToken
-            let _dt = userDefaults.string(forKey: "NTFY_DEVICE_TOKEN") ?? ""
-            if (ntfyToken != nil && (_dt.isEmpty || _dt != ntfyToken)) {
-                userDefaults.set(ntfyToken, forKey: "NTFY_DEVICE_TOKEN")
-                Task { @MainActor in
-                    self.setDeviceToken(token: ntfyToken!)
-                }
-            }
-            
-            completionHandler(ntfyToken, error)
+        
+        let result = await PostDevice(dev: ntfyDevice, appKey: _apiKey)
+        
+        let userDefaults = UserDefaults(suiteName: _bundleGroup)!
+        if (result.token == nil) {
+            return ResultHandler(token: result.token, error: result.error)
         }
+        
+        //ntfyDevice.D_NTFY_Token = ntfyToken
+        let _dt = userDefaults.string(forKey: "NTFY_DEVICE_TOKEN") ?? ""
+        if (result.token != nil && (_dt.isEmpty || _dt != result.token)) {
+            userDefaults.set(result.token, forKey: "NTFY_DEVICE_TOKEN")
+            _deviceToken = result.token ?? ""
+        }
+        
+        return ResultHandler(token: result.token)
     }
     
     @MainActor func setDeviceToken(token: String) {
@@ -144,15 +142,14 @@ public class SecNtfySwifty {
         ntfyDevice.D_APN_ID = apnsToken
     }
     
-    @MainActor func PostDevice(dev: NTFY_Devices, appKey: String, completionHandler: @MainActor @escaping @Sendable (_ ntfyToken: String?, _ bundleGroup: String, _ error: Error?) -> ()) {
+    func PostDevice(dev: NTFY_Devices, appKey: String) async -> ResultHandler {
         let urlString = "\(_apiUrl)/App/RegisterDevice"
         let bundle = _bundleGroup
         let JsonEncoder = JSONEncoder()
         let JsonDecoder = JSONDecoder()
         
         guard let url = URL(string: urlString) else {
-            completionHandler(nil, _bundleGroup, NtfyError.unsuppotedURL)
-            return
+            return ResultHandler(token: nil, bundleGroup: bundle, error: NtfyError.unsuppotedURL)
         }
         
         //print(appKey)
@@ -169,34 +166,14 @@ public class SecNtfySwifty {
             let jsonData = try JsonEncoder.encode(dev)
             request.httpBody = jsonData
             
-            let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-                Task {
-                    do {
-                        if error == nil {
-                            let result = try JsonDecoder.decode(Response.self, from: data!)
-                            SecNtfySwifty.log.error("♻️ - \(result.Message ?? "") \(result.Token ?? "") \(error?.localizedDescription ?? "")")
-                            await completionHandler(result.Token, bundle, error)
-                        } else {
-                            SecNtfySwifty.log.error("🔥 - Failed task \(error!.localizedDescription)")
-                            print("Failed task", error!)
-                            await completionHandler(nil, bundle, error)
-                            return
-                        }
-                    } catch let error {
-                        SecNtfySwifty.log.error("🔥 - Failed task \(error.localizedDescription)")
-                        print("Failed task", error)
-                        await completionHandler(nil, bundle, error)
-                        return
-                    }
-                }
-            }
-            
-            task.resume()
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let result = try JsonDecoder.decode(Response.self, from: data)
+            SecNtfySwifty.log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
+            return ResultHandler(token: result.Token, bundleGroup: bundle)
         } catch let error {
             SecNtfySwifty.log.error("🔥 - Failed to PostDevice \(error.localizedDescription)")
             print("Failed to PostDevice", error)
-            completionHandler(nil, _bundleGroup, error)
-            return
+            return ResultHandler(token: nil, bundleGroup: bundle, error: error)
         }
     }
     
@@ -216,7 +193,7 @@ public class SecNtfySwifty {
     }
     
     @MainActor
-    public func MessageReceived(msgId: String) {
+    public func MessageReceived(msgId: String) async {
         let urlString = "\(_apiUrl)/Message/Receive/\(msgId)"
         
         let JsonEncoder = JSONEncoder()
@@ -245,22 +222,9 @@ public class SecNtfySwifty {
             request.setValue("\(_deviceToken)", forHTTPHeaderField: "X-NTFYME-DEVICE-KEY")        // the expected response is also JSON
             JsonEncoder.outputFormatting = .prettyPrinted
             
-            let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-                do {
-                    if error == nil {
-                        let result = try JsonDecoder.decode(Response.self, from: data!)
-                        SecNtfySwifty.log.error("♻️ - \(result.Message ?? "") \(result.Token ?? "") \(error?.localizedDescription ?? "")")
-                    } else {
-                        SecNtfySwifty.log.error("🔥 - Failed task \(error!.localizedDescription)")
-                        return
-                    }
-                } catch let error {
-                    SecNtfySwifty.log.error("🔥 - Failed task \(error.localizedDescription)")
-                    return
-                }
-            }
-            
-            task.resume()
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let result = try JsonDecoder.decode(Response.self, from: data)
+            SecNtfySwifty.log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
         } catch let error {
             SecNtfySwifty.log.error("🔥 - Failed to MessageReceived \(error.localizedDescription)")
             return

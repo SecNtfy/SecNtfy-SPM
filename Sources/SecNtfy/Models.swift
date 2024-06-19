@@ -12,6 +12,23 @@ import UIKit
 import AppKit
 #endif
 
+public struct ResultHandler : Codable {
+    var token: String?
+    var bundleGroup: String?
+    var error: Error?
+    
+    enum CodingKeys: String, CodingKey {
+        case token = "token"
+        case bundleGroup = "bundleGroup"
+    }
+    
+    init(token: String? = nil, bundleGroup: String? = nil, error: Error? = nil) {
+        self.token = token
+        self.bundleGroup = bundleGroup
+        self.error = error
+    }
+}
+
 struct NTFY_Devices : Sendable, Codable {
     
     var D_ID: Int?
