@@ -12,7 +12,7 @@ import UIKit
 import AppKit
 #endif
 
-public struct ResultHandler : Codable {
+public struct ResultHandler : Codable, Sendable {
     public var token: String?
     public var bundleGroup: String?
     public var error: Error?
