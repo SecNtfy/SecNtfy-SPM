@@ -109,11 +109,6 @@ public class SecNtfySwifty {
     }
     
     @MainActor public func getNtfyToken() async -> ResultHandler {
-        
-        SecNtfySwifty.log.info(_bundleGroup)
-        SecNtfySwifty.log.info("Device found in Defaults")        
-        SecNtfySwifty.log.info(dump(ntfyDevice))
-        
         if (ntfyDevice.D_OS_Version?.count == 0) {
             return ResultHandler(token: nil, error: NtfyError.noDevice)
         }
@@ -171,7 +166,14 @@ public class SecNtfySwifty {
             let jsonData = try JsonEncoder.encode(dev)
             request.httpBody = jsonData
             
+            SecNtfySwifty.log.info(url)
+            SecNtfySwifty.log.info(appKey)
+            SecNtfySwifty.log.info(dump(dev))
+            
             let (data, _) = try await URLSession.shared.data(for: request)
+            
+            SecNtfySwifty.log.info(String(data: data, encoding: .utf8) ?? "")
+            
             let result = try JsonDecoder.decode(Response.self, from: data)
             SecNtfySwifty.log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
             return ResultHandler(token: result.Token, bundleGroup: bundle)
