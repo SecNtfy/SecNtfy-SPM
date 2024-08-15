@@ -109,6 +109,11 @@ public class SecNtfySwifty {
     }
     
     @MainActor public func getNtfyToken() async -> ResultHandler {
+        
+        SecNtfySwifty.log.info(_bundleGroup)
+        SecNtfySwifty.log.info("Device found in Defaults")        
+        SecNtfySwifty.log.info(dump(ntfyDevice))
+        
         if (ntfyDevice.D_OS_Version?.count == 0) {
             return ResultHandler(token: nil, error: NtfyError.noDevice)
         }
