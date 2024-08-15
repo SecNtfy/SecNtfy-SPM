@@ -1,0 +1,23 @@
+{
+  "pins" : [
+    {
+      "identity" : "swiftybeaver",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftyBeaver/SwiftyBeaver.git",
+      "state" : {
+        "revision" : "8cba041db09596183331d123f337d0eb2e6e8e91",
+        "version" : "2.1.1"
+      }
+    },
+    {
+      "identity" : "swiftyrsa",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/TakeScoop/SwiftyRSA.git",
+      "state" : {
+        "revision" : "6521919ad0e99dff927685f142d8136479acb452",
+        "version" : "1.8.0"
+      }
+    }
+  ],
+  "version" : 2
+}

@@ -108,7 +108,7 @@ public class SecNtfySwifty {
         SecNtfySwifty.log.info("PrivKey: \(anonymiesString(input: _privateKey))")
     }
     
-    public func getNtfyToken() async -> ResultHandler {
+    @MainActor public func getNtfyToken() async -> ResultHandler {
         if (ntfyDevice.D_OS_Version?.count == 0) {
             return ResultHandler(token: nil, error: NtfyError.noDevice)
         }
@@ -142,7 +142,7 @@ public class SecNtfySwifty {
         ntfyDevice.D_APN_ID = apnsToken
     }
     
-    func PostDevice(dev: NTFY_Devices, appKey: String) async -> ResultHandler {
+    @MainActor func PostDevice(dev: NTFY_Devices, appKey: String) async -> ResultHandler {
         let urlString = "\(_apiUrl)/App/RegisterDevice"
         let bundle = _bundleGroup
         let JsonEncoder = JSONEncoder()
