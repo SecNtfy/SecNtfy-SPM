@@ -18,7 +18,6 @@ public class SecNtfySwifty {
     @MainActor private static var _instance: SecNtfySwifty? = nil
     private var _publicKey = ""
     private var _privateKey = ""
-    private var _apiKey = ""
     private var _apnsToken = ""
     private var _apiUrl = ""
     private var _bundleGroup = ""
@@ -55,7 +54,7 @@ public class SecNtfySwifty {
             _apiUrl = userDefaults.string(forKey: "NTFY_API_URL") ?? ""
             _deviceToken = userDefaults.string(forKey: "NTFY_DEVICE_TOKEN") ?? ""
             
-            if (_apiKey.isEmpty && !apiUrl.isEmpty) {
+            if (!apiUrl.isEmpty) {
                 _apiUrl = apiUrl
                 userDefaults.set(_apiUrl, forKey: "NTFY_API_URL")
             }
@@ -85,9 +84,11 @@ public class SecNtfySwifty {
     }
     
     @MainActor public func configure(apiKey: String) {
-        _apiKey = apiKey
         var model = ""
         var osVersion = ""
+        
+        let userDefaults = UserDefaults(suiteName: _bundleGroup)!
+        userDefaults.set(apiKey, forKey: "NTFY_API_KEY")
         
 #if os(iOS) || os(tvOS)
         model = UIDevice().type.rawValue
@@ -112,10 +113,11 @@ public class SecNtfySwifty {
         if (ntfyDevice.D_OS_Version?.count == 0) {
             return ResultHandler(token: nil, error: NtfyError.noDevice)
         }
-        
-        let result = await PostDevice(dev: ntfyDevice, appKey: _apiKey)
-        
         let userDefaults = UserDefaults(suiteName: _bundleGroup)!
+        
+        let apiKey = userDefaults.string(forKey: "NTFY_API_KEY") ?? ""
+        let result = await PostDevice(dev: ntfyDevice, appKey: apiKey)
+        
         if (result.token == nil) {
             return ResultHandler(token: result.token, error: result.error)
         }
