@@ -15,7 +15,6 @@ import AppKit
 
 public class SecNtfySwifty {
     
-    @MainActor private static var _instance: SecNtfySwifty? = nil
     private var _publicKey = ""
     private var _privateKey = ""
     private var _apiKey = ""
@@ -24,24 +23,17 @@ public class SecNtfySwifty {
     private var _bundleGroup = ""
     private var _deviceToken: String = ""
     private var ntfyDevice: NTFY_Devices = NTFY_Devices()
-    static let log = SwiftyBeaver.self
+    private static let log = SwiftyBeaver.self
     
-    init() { }
-    
-    @MainActor public static func getInstance() -> SecNtfySwifty {
-        if (_instance == nil) {
-            // add log destinations. at least one is needed!
-            let console = ConsoleDestination()  // log to Xcode Console
-            let file = FileDestination()  // log to default swiftybeaver.log file
-            console.format = "$DHH:mm:ss$d $L $M"
-            // add the destinations to SwiftyBeaver
-            log.addDestination(console)
-            log.addDestination(file)
-            log.info("♻️ - instance nil, start init process")
-            _instance = SecNtfySwifty()
-        }
-        log.info("♻️ - instance init")
-        return _instance!
+    init() {
+        // add log destinations. at least one is needed!
+        let console = ConsoleDestination()  // log to Xcode Console
+        let file = FileDestination()  // log to default swiftybeaver.log file
+        console.format = "$DHH:mm:ss$d $L $M"
+        // add the destinations to SwiftyBeaver
+        SecNtfySwifty.log.addDestination(console)
+        SecNtfySwifty.log.addDestination(file)
+        SecNtfySwifty.log.info("♻️ - Init SecNtfySwifty")
     }
     
     @MainActor
