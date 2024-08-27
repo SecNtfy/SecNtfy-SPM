@@ -13,6 +13,8 @@ import AppKit
 #endif
 
 
+extension SecNtfySwifty: @unchecked Sendable {}
+
 public class SecNtfySwifty {
     
     private var _publicKey = ""
@@ -24,8 +26,9 @@ public class SecNtfySwifty {
     private var _deviceToken: String = ""
     private var ntfyDevice: NTFY_Devices = NTFY_Devices()
     private static let log = SwiftyBeaver.self
+    public static let shared = SecNtfySwifty()
     
-    public init() {
+    init() {
         // add log destinations. at least one is needed!
         let console = ConsoleDestination()  // log to Xcode Console
         let file = FileDestination()  // log to default swiftybeaver.log file
