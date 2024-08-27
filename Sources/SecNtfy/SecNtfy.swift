@@ -25,7 +25,7 @@ public class SecNtfySwifty {
     private var ntfyDevice: NTFY_Devices = NTFY_Devices()
     private static let log = SwiftyBeaver.self
     
-    init() {
+    public init() {
         // add log destinations. at least one is needed!
         let console = ConsoleDestination()  // log to Xcode Console
         let file = FileDestination()  // log to default swiftybeaver.log file
