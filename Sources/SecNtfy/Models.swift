@@ -119,6 +119,7 @@ public enum Model : String {
          iPod7              = "iPod 7",
          
          //iPad
+         iPad               = "iPad ",
          iPad2              = "iPad 2",
          iPad3              = "iPad 3",
          iPad4              = "iPad 4",
@@ -133,6 +134,8 @@ public enum Model : String {
          iPad8              = "iPad 8", //iPad 2020
          iPad9              = "iPad 9", //iPad 2021
          iPad10             = "iPad 10", //iPad 2022
+         iPadAirM2_11       = "iPad Air M2 11\"",
+         iPadAirM2_13       = "iPad Air M2 13\"",
          
          //iPad Mini
          iPadMini           = "iPad Mini",
@@ -153,6 +156,8 @@ public enum Model : String {
          iPadPro3_12_9      = "iPad Pro 3 12.9\"",
          iPadPro4_12_9      = "iPad Pro 4 12.9\"",
          iPadPro5_12_9      = "iPad Pro 5 12.9\"",
+         iPadProM4_11       = "iPad Pro M4 11\"",
+         iPadProM4_13       = "iPad Pro M4 13\"",
          
          //iPhone
          iPhone4            = "iPhone 4",
@@ -194,6 +199,10 @@ public enum Model : String {
          iPhone15Plus       = "iPhone 15 Plus",
          iPhone15Pro        = "iPhone 15 Pro",
          iPhone15ProMax     = "iPhone 15 Pro Max",
+         iPhone16           = "iPhone 16",
+         iPhone16Plus       = "iPhone 16 Plus",
+         iPhone16Pro        = "iPhone 16 Pro",
+         iPhone16ProMax     = "iPhone 16 Pro Max",
          
          // Apple Watch
          AppleWatch1         = "Apple Watch 1gen",
@@ -202,9 +211,15 @@ public enum Model : String {
          AppleWatchS3        = "Apple Watch Series 3",
          AppleWatchS4        = "Apple Watch Series 4",
          AppleWatchS5        = "Apple Watch Series 5",
-         AppleWatchSE        = "Apple Watch Special Edition",
+         AppleWatchSE        = "Apple Watch SE",
          AppleWatchS6        = "Apple Watch Series 6",
          AppleWatchS7        = "Apple Watch Series 7",
+         AppleWatchSE2        = "Apple Watch SE2",
+         AppleWatchS8        = "Apple Watch Series 8",
+         AppleWatchUltra        = "Apple Watch Ultra",
+         AppleWatchS9        = "Apple Watch Series 9",
+         AppleWatchUltra2        = "Apple Watch Ultra 2",
+         AppleWatchS10        = "Apple Watch Series 10",
          
          //Apple TV
          AppleTV1           = "Apple TV 1gen",
@@ -213,6 +228,7 @@ public enum Model : String {
          AppleTV4           = "Apple TV 4gen",
          AppleTV_4K         = "Apple TV 4K",
          AppleTV2_4K        = "Apple TV 4K 2gen",
+         AppleTV3_4K        = "Apple TV 4K 3gen",
          
          unrecognized       = "?unrecognized?"
 }
@@ -228,7 +244,7 @@ public extension UIDevice {
         uname(&systemInfo)
         let modelCode = withUnsafePointer(to: &systemInfo.machine) {
             $0.withMemoryRebound(to: CChar.self, capacity: 1) {
-                ptr in String.init(validatingUTF8: ptr)
+                ptr in String(validatingCString: ptr)
             }
         }
         
@@ -248,6 +264,7 @@ public extension UIDevice {
             "iPod9,1"   : .iPod7,
             
             //iPad
+            "iPad1,1"   : .iPad,
             "iPad2,1"   : .iPad2,
             "iPad2,2"   : .iPad2,
             "iPad2,3"   : .iPad2,
@@ -317,6 +334,10 @@ public extension UIDevice {
             "iPad13,9"  : .iPadPro5_12_9,
             "iPad13,10" : .iPadPro5_12_9,
             "iPad13,11" : .iPadPro5_12_9,
+            "iPad16,3"  : .iPadProM4_11,
+            "iPad16,4"  : .iPadProM4_11,
+            "iPad16,5"  : .iPadProM4_13,
+            "iPad16,6"  : .iPadProM4_13,
             
             //iPad Air
             "iPad4,1"   : .iPadAir,
@@ -330,6 +351,10 @@ public extension UIDevice {
             "iPad13,2"  : .iPadAir4,
             "iPad13,16" : .iPadAir5,
             "iPad13,17" : .iPadAir5,
+            "iPad14,8"  : .iPadAirM2_11,
+            "iPad14,9"  : .iPadAirM2_11,
+            "iPad14,10"  : .iPadAirM2_13,
+            "iPad14,11"  : .iPadAirM2_13,
             
             //iPhone
             "iPhone3,1" : .iPhone4,
@@ -382,6 +407,10 @@ public extension UIDevice {
             "iPhone15,5" : .iPhone15Plus,
             "iPhone16,1" : .iPhone15Pro,
             "iPhone16,2" : .iPhone15ProMax,
+            "iPhone17,1" : .iPhone16Pro,
+            "iPhone17,2" : .iPhone16ProMax,
+            "iPhone17,3" : .iPhone16,
+            "iPhone17,4" : .iPhone16Plus,
             
             // Apple Watch
             "Watch1,1" : .AppleWatch1,
@@ -414,6 +443,24 @@ public extension UIDevice {
             "Watch6,7" : .AppleWatchS7,
             "Watch6,8" : .AppleWatchS7,
             "Watch6,9" : .AppleWatchS7,
+            "Watch6,10" : .AppleWatchSE2,
+            "Watch6,11" : .AppleWatchSE2,
+            "Watch6,12" : .AppleWatchSE2,
+            "Watch6,13" : .AppleWatchSE2,
+            "Watch6,14" : .AppleWatchS8,
+            "Watch6,15" : .AppleWatchS8,
+            "Watch6,16" : .AppleWatchS8,
+            "Watch6,17" : .AppleWatchS8,
+            "Watch6,18" : .AppleWatchUltra,
+            "Watch7,1" : .AppleWatchS9,
+            "Watch7,2" : .AppleWatchS9,
+            "Watch7,3" : .AppleWatchS9,
+            "Watch7,4" : .AppleWatchS9,
+            "Watch7,5" : .AppleWatchUltra2,
+            "Watch7,8" : .AppleWatchS10,
+            "Watch7,9" : .AppleWatchS10,
+            "Watch7,10" : .AppleWatchS10,
+            "Watch7,11" : .AppleWatchS10,
             
             //Apple TV
             "AppleTV1,1" : .AppleTV1,
@@ -422,15 +469,14 @@ public extension UIDevice {
             "AppleTV3,2" : .AppleTV3,
             "AppleTV5,3" : .AppleTV4,
             "AppleTV6,2" : .AppleTV_4K,
-            "AppleTV11,1" : .AppleTV2_4K
+            "AppleTV11,1" : .AppleTV2_4K,
+            "AppleTV14,1" : .AppleTV3_4K
         ]
         
-        guard let mcode = modelCode, let map = String(validatingUTF8: mcode), let model = modelMap[map] else { return Model.unrecognized }
+        guard let mcode = modelCode, let model = modelMap[mcode] else { return Model.unrecognized }
         if model == .simulator {
-            if let simModelCode = ProcessInfo().environment["SIMULATOR_MODEL_IDENTIFIER"] {
-                if let simMap = String(validatingUTF8: simModelCode), let simModel = modelMap[simMap] {
-                    return simModel
-                }
+            if let simModelCode = ProcessInfo().environment["SIMULATOR_MODEL_IDENTIFIER"], let simModel = modelMap[simModelCode] {
+                return simModel
             }
         }
         return model

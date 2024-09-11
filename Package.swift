@@ -30,5 +30,6 @@ let package = Package(
         .testTarget(
             name: "SecNtfyTests",
             dependencies: ["SecNtfy"]),
-    ]
+    ],
+    swiftLanguageVersions: [.version("6")]
 )
