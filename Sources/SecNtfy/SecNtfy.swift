@@ -2,8 +2,8 @@
 // https://docs.swift.org/swift-book
 
 import Foundation
-import SwiftyRSA
 import SwiftyBeaver
+import CryptoSwift
 
 #if canImport(UIKit)
 import UIKit
@@ -63,9 +63,9 @@ public class SecNtfySwifty {
             SecNtfySwifty.log.info("♻️ - Bundle Group \(bundleGroup)")
             
             if (_publicKey.isEmpty || _privateKey.isEmpty) {
-                let keyPair = try SwiftyRSA.generateRSAKeyPair(sizeInBits: 2048)
-                _privateKey = try keyPair.privateKey.base64String()
-                _publicKey = try keyPair.publicKey.base64String()
+                let keyPair = try RSA(keySize: 2048)
+                _privateKey = try keyPair.externalRepresentation().base64EncodedString()
+                _publicKey = try keyPair.publicKeyExternalRepresentation().base64EncodedString()
                 
                 userDefaults.set(_publicKey, forKey: "NTFY_PUB_KEY")
                 userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
@@ -175,11 +175,17 @@ public class SecNtfySwifty {
     public func DecryptMessage(msg: String) -> String? {
         var decryptedMsg = ""
         do {
-            let privateKey = try PrivateKey(base64Encoded: _privateKey)
-            let encrypted = try EncryptedMessage(base64Encoded: msg)
-            let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1)
+            let privateKeyData = Data(base64Encoded: _privateKey)!
+            let privateKey = try RSA(rawRepresentation: privateKeyData)
+            let encodedMsg = Data(base64Encoded: msg)!
+            let clearData = try privateKey.decrypt(encodedMsg.bytes, variant: .pksc1v15)
             
-            decryptedMsg = try clear.string(encoding: .utf8)
+            decryptedMsg = String(data: Data(clearData), encoding: .utf8) ?? ""
+//            let privateKey = try PrivateKey(base64Encoded: _privateKey)
+//            let encrypted = try EncryptedMessage(base64Encoded: msg)
+//            let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1)
+//            
+//            decryptedMsg = try clear.string(encoding: .utf8)
         } catch let error {
             SecNtfySwifty.log.error("🔥 - Failed to DecryptMessage \(error.localizedDescription)")
             return "🔥 - Failed to DecryptMessage \(error.localizedDescription)"
