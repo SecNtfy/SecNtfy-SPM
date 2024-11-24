@@ -79,6 +79,25 @@ public class SecNtfySwifty {
         }
     }
     
+    @MainActor public func generateNewKeys(deviceToken: String) -> Bool {
+        let userDefaults = UserDefaults(suiteName: _bundleGroup)!
+        do {
+            if (!_publicKey.isEmpty || !_privateKey.isEmpty) {
+                let keyPair = try RSA(keySize: 2048)
+                _privateKey = try keyPair.externalRepresentation().base64EncodedString()
+                _publicKey = try keyPair.publicKeyExternalRepresentation().base64EncodedString()
+                
+                userDefaults.set(_publicKey, forKey: "NTFY_PUB_KEY")
+                userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
+                return true
+            }
+        }
+        catch {
+            SecNtfySwifty.log.error("🔥 - \(error.localizedDescription)")
+        }
+        return false
+    }
+    
     @MainActor public func configure(apiKey: String) {
         _apiKey = apiKey
         var model = ""
@@ -181,11 +200,11 @@ public class SecNtfySwifty {
             let clearData = try privateKey.decrypt(encodedMsg.bytes, variant: .pksc1v15)
             
             decryptedMsg = String(data: Data(clearData), encoding: .utf8) ?? ""
-//            let privateKey = try PrivateKey(base64Encoded: _privateKey)
-//            let encrypted = try EncryptedMessage(base64Encoded: msg)
-//            let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1)
-//            
-//            decryptedMsg = try clear.string(encoding: .utf8)
+            //            let privateKey = try PrivateKey(base64Encoded: _privateKey)
+            //            let encrypted = try EncryptedMessage(base64Encoded: msg)
+            //            let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1)
+            //
+            //            decryptedMsg = try clear.string(encoding: .utf8)
         } catch let error {
             SecNtfySwifty.log.error("🔥 - Failed to DecryptMessage \(error.localizedDescription)")
             return "🔥 - Failed to DecryptMessage \(error.localizedDescription)"
