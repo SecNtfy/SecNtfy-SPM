@@ -89,6 +89,7 @@ public class SecNtfySwifty {
                 
                 userDefaults.set(_publicKey, forKey: "NTFY_PUB_KEY")
                 userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
+                ntfyDevice.D_PublicKey = _publicKey
                 return true
             }
         }
