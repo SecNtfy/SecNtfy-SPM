@@ -79,7 +79,7 @@ public class SecNtfySwifty {
         }
     }
     
-    @MainActor public func generateNewKeys() -> Bool {
+    @MainActor public func generateNewKeys() async -> Bool {
         let userDefaults = UserDefaults(suiteName: _bundleGroup)!
         do {
             if (!_publicKey.isEmpty || !_privateKey.isEmpty) {
