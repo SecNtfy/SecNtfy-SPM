@@ -222,7 +222,7 @@ public class SecNtfySwifty {
             request.httpBody = jsonData
             
             let (data, _) = try await URLSession.shared.data(for: request)
-            let result = try JsonDecoder.decode(Response.self, from: data)
+            let result = try JsonDecoder.decode(NTFYResponse.self, from: data)
             SecNtfySwifty.log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
             return ResultHandler(token: result.Message, bundleGroup: bundle)
         } catch let error {
