@@ -79,7 +79,7 @@ public class SecNtfySwifty {
         }
     }
     
-    @MainActor public func generateNewKeys() async -> Bool {
+    @MainActor public func UpdateKeys() async -> Bool {
         let userDefaults = UserDefaults(suiteName: _bundleGroup)!
         do {
             if (!_publicKey.isEmpty || !_privateKey.isEmpty) {
@@ -87,10 +87,18 @@ public class SecNtfySwifty {
                 _privateKey = try keyPair.externalRepresentation().base64EncodedString()
                 _publicKey = try keyPair.publicKeyExternalRepresentation().base64EncodedString()
                 
-                userDefaults.set(_publicKey, forKey: "NTFY_PUB_KEY")
-                userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
-                ntfyDevice.D_PublicKey = _publicKey
-                return true
+                let result = await UpdateDevice(dev: ntfyDevice)
+                
+                var isSuccess = false
+                if (result.token != nil && result.token == "Device wurde aktualisiert!") {
+                    isSuccess = true
+                    userDefaults.set(_publicKey, forKey: "NTFY_PUB_KEY")
+                    userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
+                }
+                else {
+                    SecNtfySwifty.log.error("🔥 - \(result.token ?? "token is nil in UpdateDevice")")
+                }
+                return isSuccess
             }
         }
         catch {
@@ -188,6 +196,38 @@ public class SecNtfySwifty {
         } catch let error {
             SecNtfySwifty.log.error("🔥 - Failed to PostDevice \(error.localizedDescription)")
             print("Failed to PostDevice", error)
+            return ResultHandler(token: nil, bundleGroup: bundle, error: error)
+        }
+    }
+    
+    @MainActor func UpdateDevice(dev: NTFY_Devices) async -> ResultHandler {
+        let urlString = "\(_apiUrl)/Device/Update"
+        let bundle = _bundleGroup
+        let JsonEncoder = JSONEncoder()
+        let JsonDecoder = JSONDecoder()
+        
+        guard let url = URL(string: urlString) else {
+            return ResultHandler(token: nil, bundleGroup: bundle, error: NtfyError.unsuppotedURL)
+        }
+        
+        do {
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")  // the request is JSON
+            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")        // the expected response is also JSON
+            request.setValue("\(dev.D_NTFY_Token ?? "")", forHTTPHeaderField: "X-NTFYME-Token")        // the expected response is also JSON
+            JsonEncoder.outputFormatting = .prettyPrinted
+            
+            let jsonData = try JsonEncoder.encode(dev)
+            request.httpBody = jsonData
+            
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let result = try JsonDecoder.decode(Response.self, from: data)
+            SecNtfySwifty.log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
+            return ResultHandler(token: result.Message, bundleGroup: bundle)
+        } catch let error {
+            SecNtfySwifty.log.error("🔥 - Failed to UpdateDevice \(error.localizedDescription)")
+            print("Failed to UpdateDevice", error)
             return ResultHandler(token: nil, bundleGroup: bundle, error: error)
         }
     }
