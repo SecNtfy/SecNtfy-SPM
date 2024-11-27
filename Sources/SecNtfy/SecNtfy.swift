@@ -192,6 +192,7 @@ public class SecNtfySwifty {
             let (data, _) = try await URLSession.shared.data(for: request)
             let result = try JsonDecoder.decode(Response.self, from: data)
             SecNtfySwifty.log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
+            ntfyDevice.D_NTFY_Token = result.Token
             return ResultHandler(token: result.Token, bundleGroup: bundle)
         } catch let error {
             SecNtfySwifty.log.error("🔥 - Failed to PostDevice \(error.localizedDescription)")
