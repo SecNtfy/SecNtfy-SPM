@@ -28,16 +28,19 @@ public struct ResultHandler : Codable, Sendable {
     public var token: String?
     public var bundleGroup: String?
     public var error: Error?
+    public var Status: Int
     
     enum CodingKeys: String, CodingKey {
         case token = "token"
         case bundleGroup = "bundleGroup"
+        case Status = "Status"
     }
     
-    init(token: String? = nil, bundleGroup: String? = nil, error: Error? = nil) {
+    init(token: String? = nil, bundleGroup: String? = nil, error: Error? = nil, Status: Int = 0) {
         self.token = token
         self.bundleGroup = bundleGroup
         self.error = error
+        self.Status = Status
     }
 }
 
