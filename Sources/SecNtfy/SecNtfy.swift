@@ -211,8 +211,6 @@ public class SecNtfySwifty {
             return ResultHandler(token: nil, bundleGroup: bundle, error: NtfyError.unsuppotedURL)
         }
         
-        print(dev)
-        
         do {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
@@ -225,7 +223,7 @@ public class SecNtfySwifty {
             request.httpBody = jsonData
             
             let (data, _) = try await URLSession.shared.data(for: request)
-            print(String(data: data, encoding: .utf8))
+            
             let result = try JsonDecoder.decode(NTFYResponse.self, from: data)
             SecNtfySwifty.log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
             return ResultHandler(token: result.Message, bundleGroup: bundle)
