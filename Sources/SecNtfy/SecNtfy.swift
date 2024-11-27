@@ -86,7 +86,7 @@ public class SecNtfySwifty {
                 let keyPair = try RSA(keySize: 2048)
                 _privateKey = try keyPair.externalRepresentation().base64EncodedString()
                 _publicKey = try keyPair.publicKeyExternalRepresentation().base64EncodedString()
-                
+                ntfyDevice.D_PublicKey = _publicKey
                 let result = await UpdateDevice(dev: ntfyDevice)
                 
                 var isSuccess = false
