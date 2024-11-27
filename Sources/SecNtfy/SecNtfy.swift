@@ -218,7 +218,7 @@ public class SecNtfySwifty {
             request.httpMethod = "POST"
             request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")  // the request is JSON
             request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")        // the expected response is also JSON
-            request.setValue("\(dev.D_NTFY_Token ?? "")", forHTTPHeaderField: "X-NTFYME-Token")        // the expected response is also JSON
+            request.setValue("\(dev.D_NTFY_Token ?? "")", forHTTPHeaderField: "X-NTFYME-DEVICE-KEY")        // the expected response is also JSON
             JsonEncoder.outputFormatting = .prettyPrinted
             
             let jsonData = try JsonEncoder.encode(dev)
