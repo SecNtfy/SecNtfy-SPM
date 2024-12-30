@@ -26,10 +26,10 @@ public class SecNtfySwifty {
     private var _deviceToken: String = ""
     private var ntfyDevice: NTFY_Devices = NTFY_Devices()
     private let log = SwiftyBeaver.self
-    public static let shared = SecNtfySwifty()
-    public static let initFrom: String = "SecNtfySwifty"
+    @MainActor public static let shared: SecNtfySwifty = getInstance()
+    @MainActor private static var _instance: SecNtfySwifty?
     
-    init() {
+    private init() {
         // add log destinations. at least one is needed!
         let console = ConsoleDestination()  // log to Xcode Console
         let file = FileDestination()  // log to default swiftybeaver.log file
@@ -37,7 +37,16 @@ public class SecNtfySwifty {
         // add the destinations to SwiftyBeaver
         log.addDestination(console)
         log.addDestination(file)
-        log.info("♻️ - Init SecNtfySwifty (\(SecNtfySwifty.initFrom))")
+        log.info("♻️ - Init SecNtfySwifty")
+    }
+    
+    @MainActor
+    private static func getInstance() -> SecNtfySwifty {
+        
+        if (_instance == nil) {
+            _instance = SecNtfySwifty()
+        }
+        return _instance!
     }
     
     @MainActor
