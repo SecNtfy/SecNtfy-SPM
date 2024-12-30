@@ -24,7 +24,6 @@ public class SecNtfySwifty {
     private var _apiUrl = ""
     private var _bundleGroup = ""
     private var _deviceToken: String = ""
-    private var _apnsToken: String = ""
     private var ntfyDevice: NTFY_Devices = NTFY_Devices()
     private static let log = SwiftyBeaver.self
     public static let shared = SecNtfySwifty()
