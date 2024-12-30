@@ -61,25 +61,6 @@ class RSAKeyManager {
         return keyData?.base64EncodedString()
     }
     
-    // MARK: - Export Public Key in PEM format
-    func exportPublicKeyAsPEM(key: SecKey) -> String? {
-        guard let keyBase64 = exportKeyAsBase64(key: key, isPrivate: false) else {
-            return nil
-        }
-        
-        let pemHeader = "-----BEGIN PUBLIC KEY-----\n"
-        let pemFooter = "\n-----END PUBLIC KEY-----"
-        
-        var base64String = keyBase64
-        while base64String.count > 64 {
-            let range = base64String.index(base64String.startIndex, offsetBy: 64)..<base64String.index(base64String.startIndex, offsetBy: 128)
-            let chunk = base64String[range]
-            base64String = base64String.replacingCharacters(in: range, with: "\n\(chunk)")
-        }
-        
-        return pemHeader + base64String + pemFooter
-    }
-    
     // MARK: - Key Retrieval
     private func getKey(with identifier: String, isPrivate: Bool) -> SecKey? {
         let uniqueTag = identifier.data(using: .utf8)!
