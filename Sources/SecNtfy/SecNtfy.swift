@@ -3,7 +3,6 @@
 
 import Foundation
 import SwiftyBeaver
-import CryptoSwift
 
 #if canImport(UIKit)
 import UIKit
@@ -21,11 +20,13 @@ public class SecNtfySwifty {
     private var _privateKey = ""
     private var _apiKey = ""
     private var _apnsToken = ""
+    private var _uniqueId = ""
     private var _apiUrl = ""
     private var _bundleGroup = ""
     private var _deviceToken: String = ""
     private var ntfyDevice: NTFY_Devices = NTFY_Devices()
     private let log = SwiftyBeaver.self
+    private let rsaManager = RSAKeyManager()
     @MainActor public static let shared: SecNtfySwifty = getInstance()
     @MainActor private static var _instance: SecNtfySwifty?
     
@@ -57,6 +58,7 @@ public class SecNtfySwifty {
         let userDefaults = UserDefaults(suiteName: bundleGroup)!
         
         do {
+            _uniqueId = userDefaults.string(forKey: "NTFY_UNIQUE_ID") ?? ""
             _publicKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
             _privateKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
             _apiUrl = userDefaults.string(forKey: "NTFY_API_URL") ?? ""
@@ -75,17 +77,20 @@ public class SecNtfySwifty {
             log.info("♻️ - Bundle Group \(bundleGroup)")
             
             if (_publicKey.isEmpty || _privateKey.isEmpty) {
-                log.info("♻️ - Start generating RSA keys")
-                let keyPair = try RSA(keySize: 2048)
+                log.info("♻️ - Create unique ID")
+                _uniqueId = "\(_bundleGroup).keypair.\(UUID().uuidString)"
+                log.info("♻️ - starting generating")
+                let keys = try rsaManager.generateRSAKeyPair(for: _uniqueId)
                 log.info("♻️ - RSA keys generated")
-                _privateKey = try keyPair.externalRepresentation().base64EncodedString()
+                _privateKey = keys.privateKeyBase64
                 log.info("♻️ - get private key")
-                _publicKey = try keyPair.publicKeyExternalRepresentation().base64EncodedString()
+                _publicKey = keys.publicKeyBase64
                 log.info("♻️ - get public key")
                 
                 userDefaults.set(_publicKey, forKey: "NTFY_PUB_KEY")
                 userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
-                log.info("♻️ - saved keys")
+                userDefaults.set(_uniqueId, forKey: "NTFY_UNIQUE_ID")
+                log.info("♻️ - saved keys & Unique ID")
             }
             
             log.info("PubKey: \(_publicKey)")
@@ -101,9 +106,10 @@ public class SecNtfySwifty {
         let userDefaults = UserDefaults(suiteName: _bundleGroup)!
         do {
             if (!_publicKey.isEmpty || !_privateKey.isEmpty) {
-                let keyPair = try RSA(keySize: 2048)
-                _privateKey = try keyPair.externalRepresentation().base64EncodedString()
-                _publicKey = try keyPair.publicKeyExternalRepresentation().base64EncodedString()
+                _uniqueId = "\(_bundleGroup).keypair.\(UUID().uuidString)"
+                let keys = try rsaManager.generateRSAKeyPair(for: _uniqueId)
+                _privateKey = keys.privateKeyBase64
+                _publicKey = keys.publicKeyBase64
                 ntfyDevice.D_PublicKey = _publicKey
                 let result = await UpdateDevice(dev: ntfyDevice)
                 
@@ -112,6 +118,7 @@ public class SecNtfySwifty {
                     isSuccess = true
                     userDefaults.set(_publicKey, forKey: "NTFY_PUB_KEY")
                     userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
+                    userDefaults.set(_uniqueId, forKey: "NTFY_UNIQUE_ID")
                 }
                 else {
                     log.error("🔥 - \(result.token ?? "token is nil in UpdateDevice")")
@@ -255,17 +262,8 @@ public class SecNtfySwifty {
     public func DecryptMessage(msg: String) -> String? {
         var decryptedMsg = ""
         do {
-            let privateKeyData = Data(base64Encoded: _privateKey)!
-            let privateKey = try RSA(rawRepresentation: privateKeyData)
-            let encodedMsg = Data(base64Encoded: msg)!
-            let clearData = try privateKey.decrypt(encodedMsg.bytes, variant: .pksc1v15)
-            
-            decryptedMsg = String(data: Data(clearData), encoding: .utf8) ?? ""
-            //            let privateKey = try PrivateKey(base64Encoded: _privateKey)
-            //            let encrypted = try EncryptedMessage(base64Encoded: msg)
-            //            let clear = try encrypted.decrypted(with: privateKey, padding: .PKCS1)
-            //
-            //            decryptedMsg = try clear.string(encoding: .utf8)
+            let decryptedMessage = try rsaManager.decrypt(encryptedBase64: msg, usingPrivateKeyFor: _uniqueId)
+            decryptedMsg = decryptedMessage
         } catch let error {
             log.error("🔥 - Failed to DecryptMessage \(error.localizedDescription)")
             return "🔥 - Failed to DecryptMessage \(error.localizedDescription)"

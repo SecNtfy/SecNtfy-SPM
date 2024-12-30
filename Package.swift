@@ -13,7 +13,6 @@ let package = Package(
             targets: ["SecNtfy"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.8.3"),
         .package(url: "https://github.com/SwiftyBeaver/SwiftyBeaver.git", .upToNextMajor(from: "2.0.0")),
     ],
     targets: [
@@ -21,7 +20,7 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "SecNtfy",
-            dependencies: ["CryptoSwift", "SwiftyBeaver"],
+            dependencies: ["SwiftyBeaver"],
             swiftSettings: [
                 /// Xcode 15. Remove `=targeted` to use the default `complete`.
                 .enableExperimentalFeature("StrictConcurrency")
