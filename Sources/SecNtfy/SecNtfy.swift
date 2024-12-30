@@ -78,7 +78,7 @@ public class SecNtfySwifty {
             
             if (_publicKey.isEmpty || _privateKey.isEmpty) {
                 log.info("♻️ - Create unique ID")
-                _uniqueId = "\(_bundleGroup).keypair.\(UUID().uuidString)"
+                _uniqueId = UUID().uuidString.replacingOccurrences(of: "-", with: "")
                 log.info("♻️ - starting generating")
                 let keys = try rsaManager.generateRSAKeyPair(for: _uniqueId)
                 log.info("♻️ - RSA keys generated")
@@ -106,7 +106,7 @@ public class SecNtfySwifty {
         let userDefaults = UserDefaults(suiteName: _bundleGroup)!
         do {
             if (!_publicKey.isEmpty || !_privateKey.isEmpty) {
-                _uniqueId = "\(_bundleGroup).keypair.\(UUID().uuidString)"
+                _uniqueId = UUID().uuidString.replacingOccurrences(of: "-", with: "")
                 let keys = try rsaManager.generateRSAKeyPair(for: _uniqueId)
                 _privateKey = keys.privateKeyBase64
                 _publicKey = keys.publicKeyBase64
