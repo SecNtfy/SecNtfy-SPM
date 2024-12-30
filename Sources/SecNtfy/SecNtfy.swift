@@ -63,12 +63,17 @@ public class SecNtfySwifty {
             SecNtfySwifty.log.info("♻️ - Bundle Group \(bundleGroup)")
             
             if (_publicKey.isEmpty || _privateKey.isEmpty) {
+                SecNtfySwifty.log.info("♻️ - Start generating RSA keys")
                 let keyPair = try RSA(keySize: 2048)
+                SecNtfySwifty.log.info("♻️ - RSA keys generated")
                 _privateKey = try keyPair.externalRepresentation().base64EncodedString()
+                SecNtfySwifty.log.info("♻️ - get private key")
                 _publicKey = try keyPair.publicKeyExternalRepresentation().base64EncodedString()
+                SecNtfySwifty.log.info("♻️ - get public key")
                 
                 userDefaults.set(_publicKey, forKey: "NTFY_PUB_KEY")
                 userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
+                SecNtfySwifty.log.info("♻️ - saved keys")
             }
             
             SecNtfySwifty.log.info("PubKey: \(_publicKey)")
