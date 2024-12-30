@@ -28,7 +28,7 @@ public class SecNtfySwifty {
     private let log = SwiftyBeaver.self
     public static let shared = SecNtfySwifty()
     
-    init() {
+    init(_ initFrom: String = "") {
         // add log destinations. at least one is needed!
         let console = ConsoleDestination()  // log to Xcode Console
         let file = FileDestination()  // log to default swiftybeaver.log file
@@ -36,7 +36,7 @@ public class SecNtfySwifty {
         // add the destinations to SwiftyBeaver
         log.addDestination(console)
         log.addDestination(file)
-        log.info("♻️ - Init SecNtfySwifty")
+        log.info("♻️ - Init SecNtfySwifty (\(initFrom))")
     }
     
     @MainActor
