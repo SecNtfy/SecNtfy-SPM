@@ -24,6 +24,7 @@ public class SecNtfySwifty {
     private var _apiUrl = ""
     private var _bundleGroup = ""
     private var _deviceToken: String = ""
+    private var _apnsToken: String = ""
     private var ntfyDevice: NTFY_Devices = NTFY_Devices()
     private static let log = SwiftyBeaver.self
     public static let shared = SecNtfySwifty()
@@ -40,7 +41,7 @@ public class SecNtfySwifty {
     }
     
     @MainActor
-    public func initialize(apiUrl: String = "", bundleGroup: String = "de.sr.SecNtfy") {
+    public func initialize(apiUrl: String = "", bundleGroup: String = "de.sr.SecNtfy") async {
         _bundleGroup = bundleGroup
         let userDefaults = UserDefaults(suiteName: bundleGroup)!
         
@@ -84,7 +85,8 @@ public class SecNtfySwifty {
         }
     }
     
-    @MainActor public func UpdateKeys() async -> Bool {
+    @MainActor
+    public func UpdateKeys() async -> Bool {
         let userDefaults = UserDefaults(suiteName: _bundleGroup)!
         do {
             if (!_publicKey.isEmpty || !_privateKey.isEmpty) {
@@ -127,7 +129,7 @@ public class SecNtfySwifty {
         model = "Macbook"
         osVersion = "macOS"
 #endif
-        ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: "", D_Android_ID: "", D_PublicKey: _publicKey, D_NTFY_Token: "")
+        ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: _apnsToken, D_Android_ID: "", D_PublicKey: _publicKey, D_NTFY_Token: "")
         
         SecNtfySwifty.log.info("Model: \(model)")
         SecNtfySwifty.log.info("OS: \(osVersion)")
@@ -167,7 +169,7 @@ public class SecNtfySwifty {
             return
         }
         SecNtfySwifty.log.info("\(anonymiesString(input: apnsToken))")
-        ntfyDevice.D_APN_ID = apnsToken
+        _apnsToken = apnsToken
     }
     
     @MainActor func PostDevice(dev: NTFY_Devices, appKey: String) async -> ResultHandler {
