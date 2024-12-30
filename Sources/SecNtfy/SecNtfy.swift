@@ -45,12 +45,14 @@ public class SecNtfySwifty {
         
         if (_instance == nil) {
             _instance = SecNtfySwifty()
+        }else {
+            print("already init SecNtfySwifty")
         }
         return _instance!
     }
     
     @MainActor
-    public func initialize(apiUrl: String = "", bundleGroup: String = "de.sr.SecNtfy") async {
+    public func initialize(apiUrl: String = "", bundleGroup: String = "de.sr.SecNtfy") {
         _bundleGroup = bundleGroup
         let userDefaults = UserDefaults(suiteName: bundleGroup)!
         
