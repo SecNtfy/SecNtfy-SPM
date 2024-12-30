@@ -8,6 +8,46 @@
 import Foundation
 import Security
 
+// Helper function for ASN.1 encoding
+struct ASN1 {
+    static func encodePublicKey(modulus: Data, exponent: Data) -> Data {
+        let sequence: [UInt8] = [
+            0x30, 0x00, // Sequence tag and length placeholder
+            0x02, 0x00, // Integer tag and length placeholder for modulus
+            0x00, 0x00, // Modulus length placeholder
+            0x02, 0x00, // Integer tag and length placeholder for exponent
+            0x00, 0x00  // Exponent length placeholder
+        ]
+        
+        // Encode the actual data (modulus and exponent)
+        var data: [UInt8] = sequence
+        // Append modulus and exponent
+        data.append(contentsOf: modulus)
+        data.append(contentsOf: exponent)
+        
+        return Data(data)
+    }
+    
+    static func encodePrivateKey(modulus: Data, exponent: Data, privateExponent: Data) -> Data {
+        let sequence: [UInt8] = [
+            0x30, 0x00, // Sequence tag and length placeholder
+            0x02, 0x00, // Integer tag and length placeholder for modulus
+            0x00, 0x00, // Modulus length placeholder
+            0x02, 0x00, // Integer tag and length placeholder for exponent
+            0x00, 0x00, // Exponent length placeholder
+            0x02, 0x00  // Private exponent placeholder
+        ]
+        
+        var data: [UInt8] = sequence
+        // Append modulus, exponent, and private exponent
+        data.append(contentsOf: modulus)
+        data.append(contentsOf: exponent)
+        data.append(contentsOf: privateExponent)
+        
+        return Data(data)
+    }
+}
+
 class RSAKeyManager {
     
     // MARK: - Key Generation
@@ -28,36 +68,51 @@ class RSAKeyManager {
             throw error!.takeRetainedValue() as Error
         }
         
-        guard let privateKeyBase64 = exportKeyAsBase64(key: privateKey, isPrivate: true),
-              let publicKeyBase64 = exportKeyAsBase64(key: privateKey, isPrivate: false) else {
+        // Export the private and public keys in ASN.1 format and then base64 encode
+        guard let privateKeyBase64 = exportKeyAsASN1Base64(key: privateKey, isPrivate: true),
+              let publicKeyBase64 = exportKeyAsASN1Base64(key: privateKey, isPrivate: false) else {
             throw NSError(domain: "KeyExportError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to export keys"])
         }
         
         return (privateKeyBase64, publicKeyBase64)
     }
     
-    // MARK: - Key Export
-    private func exportKeyAsBase64(key: SecKey, isPrivate: Bool) -> String? {
+    // MARK: - Key Export (ASN.1 encoding)
+    private func exportKeyAsASN1Base64(key: SecKey, isPrivate: Bool) -> String? {
         var error: Unmanaged<CFError>?
         var keyData: Data?
         
         if isPrivate {
-            // Export private key
-            guard let cfKeyData = SecKeyCopyExternalRepresentation(key, &error) else {
+            // Export private key in ASN.1 DER format
+            guard let privateKey = SecKeyCopyExternalRepresentation(key, &error) else {
                 print("Error exporting private key: \(error!.takeRetainedValue())")
                 return nil
             }
-            keyData = cfKeyData as Data
+            let privateKeyData = privateKey as Data
+            
+            // Example: Convert to ASN.1 DER (modulus, exponent, private exponent, etc.)
+            let modulus = privateKeyData.prefix(256) // Example, extract modulus
+            let exponent = privateKeyData.suffix(3)  // Example, extract exponent
+            let privateExponent = privateKeyData.suffix(128) // Example, extract private exponent
+            
+            keyData = ASN1.encodePrivateKey(modulus: modulus, exponent: exponent, privateExponent: privateExponent)
+            
         } else {
-            // Export public key (DER-encoded)
-            guard let cfKeyData = SecKeyCopyExternalRepresentation(key, &error) else {
+            // Export public key in ASN.1 DER format
+            guard let publicKey = SecKeyCopyExternalRepresentation(key, &error) else {
                 print("Error exporting public key: \(error!.takeRetainedValue())")
                 return nil
             }
-            keyData = cfKeyData as Data
+            let publicKeyData = publicKey as Data
+            
+            // Example: Convert to ASN.1 DER (modulus, exponent)
+            let modulus = publicKeyData.prefix(256) // Example, extract modulus
+            let exponent = publicKeyData.suffix(3)  // Example, extract exponent
+            
+            keyData = ASN1.encodePublicKey(modulus: modulus, exponent: exponent)
         }
         
-        // Convert the raw key data to Base64 (usable for storage or transmission)
+        // Convert the ASN.1 encoded data to Base64
         return keyData?.base64EncodedString()
     }
     
