@@ -181,6 +181,9 @@ public class SecNtfySwifty {
         }
         log.info("\(anonymiesString(input: apnsToken))")
         _apnsToken = apnsToken
+        if (ntfyDevice.D_APN_ID?.count == 0) {
+            ntfyDevice.D_APN_ID = apnsToken
+        }
     }
     
     @MainActor func PostDevice(dev: NTFY_Devices, appKey: String) async -> ResultHandler {
