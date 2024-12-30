@@ -25,7 +25,7 @@ public class SecNtfySwifty {
     private var _bundleGroup = ""
     private var _deviceToken: String = ""
     private var ntfyDevice: NTFY_Devices = NTFY_Devices()
-    private static let log = SwiftyBeaver.self
+    private let log = SwiftyBeaver.self
     public static let shared = SecNtfySwifty()
     
     init() {
@@ -34,9 +34,9 @@ public class SecNtfySwifty {
         let file = FileDestination()  // log to default swiftybeaver.log file
         console.format = "$DHH:mm:ss$d $L $M"
         // add the destinations to SwiftyBeaver
-        SecNtfySwifty.log.addDestination(console)
-        SecNtfySwifty.log.addDestination(file)
-        SecNtfySwifty.log.info("♻️ - Init SecNtfySwifty")
+        log.addDestination(console)
+        log.addDestination(file)
+        log.info("♻️ - Init SecNtfySwifty")
     }
     
     @MainActor
@@ -56,31 +56,31 @@ public class SecNtfySwifty {
             }
             
             if (_apiUrl.count == 0 || bundleGroup.count == 0) {
-                SecNtfySwifty.log.error("🔥 - The API URL or Bundle Group is empty")
+                log.error("🔥 - The API URL or Bundle Group is empty")
             }
             
-            SecNtfySwifty.log.info("♻️ - API URL \(_apiUrl)")
-            SecNtfySwifty.log.info("♻️ - Bundle Group \(bundleGroup)")
+            log.info("♻️ - API URL \(_apiUrl)")
+            log.info("♻️ - Bundle Group \(bundleGroup)")
             
             if (_publicKey.isEmpty || _privateKey.isEmpty) {
-                SecNtfySwifty.log.info("♻️ - Start generating RSA keys")
+                log.info("♻️ - Start generating RSA keys")
                 let keyPair = try RSA(keySize: 2048)
-                SecNtfySwifty.log.info("♻️ - RSA keys generated")
+                log.info("♻️ - RSA keys generated")
                 _privateKey = try keyPair.externalRepresentation().base64EncodedString()
-                SecNtfySwifty.log.info("♻️ - get private key")
+                log.info("♻️ - get private key")
                 _publicKey = try keyPair.publicKeyExternalRepresentation().base64EncodedString()
-                SecNtfySwifty.log.info("♻️ - get public key")
+                log.info("♻️ - get public key")
                 
                 userDefaults.set(_publicKey, forKey: "NTFY_PUB_KEY")
                 userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
-                SecNtfySwifty.log.info("♻️ - saved keys")
+                log.info("♻️ - saved keys")
             }
             
-            SecNtfySwifty.log.info("PubKey: \(_publicKey)")
-            SecNtfySwifty.log.info("PrivKey: \(anonymiesString(input: _privateKey))")
+            log.info("PubKey: \(_publicKey)")
+            log.info("PrivKey: \(anonymiesString(input: _privateKey))")
             
         } catch {
-            SecNtfySwifty.log.error("🔥 - \(error.localizedDescription)")
+            log.error("🔥 - \(error.localizedDescription)")
         }
     }
     
@@ -102,13 +102,13 @@ public class SecNtfySwifty {
                     userDefaults.set(_privateKey, forKey: "NTFY_PRIV_KEY")
                 }
                 else {
-                    SecNtfySwifty.log.error("🔥 - \(result.token ?? "token is nil in UpdateDevice")")
+                    log.error("🔥 - \(result.token ?? "token is nil in UpdateDevice")")
                 }
                 return isSuccess
             }
         }
         catch {
-            SecNtfySwifty.log.error("🔥 - \(error.localizedDescription)")
+            log.error("🔥 - \(error.localizedDescription)")
         }
         return false
     }
@@ -130,11 +130,11 @@ public class SecNtfySwifty {
 #endif
         ntfyDevice = NTFY_Devices(D_ID: 0, D_APP_ID: 0, D_OS: 1, D_OS_Version: osVersion, D_Model: model, D_APN_ID: _apnsToken, D_Android_ID: "", D_PublicKey: _publicKey, D_NTFY_Token: "")
         
-        SecNtfySwifty.log.info("Model: \(model)")
-        SecNtfySwifty.log.info("OS: \(osVersion)")
+        log.info("Model: \(model)")
+        log.info("OS: \(osVersion)")
         
-        SecNtfySwifty.log.info("PubKey: \(_publicKey)")
-        SecNtfySwifty.log.info("PrivKey: \(anonymiesString(input: _privateKey))")
+        log.info("PubKey: \(_publicKey)")
+        log.info("PrivKey: \(anonymiesString(input: _privateKey))")
     }
     
     @MainActor public func getNtfyToken() async -> ResultHandler {
@@ -167,7 +167,7 @@ public class SecNtfySwifty {
         if (ntfyDevice.D_OS_Version?.count == 0) {
             return
         }
-        SecNtfySwifty.log.info("\(anonymiesString(input: apnsToken))")
+        log.info("\(anonymiesString(input: apnsToken))")
         _apnsToken = apnsToken
     }
     
@@ -197,11 +197,11 @@ public class SecNtfySwifty {
             
             let (data, _) = try await URLSession.shared.data(for: request)
             let result = try JsonDecoder.decode(Response.self, from: data)
-            SecNtfySwifty.log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
+            log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
             ntfyDevice.D_NTFY_Token = result.Token
             return ResultHandler(token: result.Token, bundleGroup: bundle)
         } catch let error {
-            SecNtfySwifty.log.error("🔥 - Failed to PostDevice \(error.localizedDescription)")
+            log.error("🔥 - Failed to PostDevice \(error.localizedDescription)")
             print("Failed to PostDevice", error)
             return ResultHandler(token: nil, bundleGroup: bundle, error: error)
         }
@@ -231,10 +231,10 @@ public class SecNtfySwifty {
             let (data, _) = try await URLSession.shared.data(for: request)
             
             let result = try JsonDecoder.decode(NTFYResponse.self, from: data)
-            SecNtfySwifty.log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
+            log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
             return ResultHandler(token: result.Message, bundleGroup: bundle)
         } catch let error {
-            SecNtfySwifty.log.error("🔥 - Failed to UpdateDevice \(error.localizedDescription)")
+            log.error("🔥 - Failed to UpdateDevice \(error.localizedDescription)")
             print("Failed to UpdateDevice", error)
             return ResultHandler(token: nil, bundleGroup: bundle, error: error)
         }
@@ -255,7 +255,7 @@ public class SecNtfySwifty {
             //
             //            decryptedMsg = try clear.string(encoding: .utf8)
         } catch let error {
-            SecNtfySwifty.log.error("🔥 - Failed to DecryptMessage \(error.localizedDescription)")
+            log.error("🔥 - Failed to DecryptMessage \(error.localizedDescription)")
             return "🔥 - Failed to DecryptMessage \(error.localizedDescription)"
         }
         return decryptedMsg
@@ -269,17 +269,17 @@ public class SecNtfySwifty {
         let JsonDecoder = JSONDecoder()
         
         if (_deviceToken.isEmpty) {
-            SecNtfySwifty.log.error("🔥 - Device Token is Empty")
+            log.error("🔥 - Device Token is Empty")
             return
         }
         
         if (msgId.isEmpty) {
-            SecNtfySwifty.log.error("🔥 - MessageId is Empty")
+            log.error("🔥 - MessageId is Empty")
             return
         }
         
         guard let url = URL(string: urlString) else {
-            SecNtfySwifty.log.error("🔥 - URL is not valid!")
+            log.error("🔥 - URL is not valid!")
             return
         }
         
@@ -293,9 +293,9 @@ public class SecNtfySwifty {
             
             let (data, _) = try await URLSession.shared.data(for: request)
             let result = try JsonDecoder.decode(Response.self, from: data)
-            SecNtfySwifty.log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
+            log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
         } catch let error {
-            SecNtfySwifty.log.error("🔥 - Failed to MessageReceived \(error.localizedDescription)")
+            log.error("🔥 - Failed to MessageReceived \(error.localizedDescription)")
             return
         }
     }
