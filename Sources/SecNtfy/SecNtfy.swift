@@ -76,7 +76,7 @@ public class SecNtfySwifty {
             
             if (_publicKey.isEmpty || _privateKey.isEmpty) {
                 log.info("♻️ - Start generating RSA keys")
-                let keyPair = try RSA(keySize: 1024)
+                let keyPair = try RSA(keySize: 2048)
                 log.info("♻️ - RSA keys generated")
                 _privateKey = try keyPair.externalRepresentation().base64EncodedString()
                 log.info("♻️ - get private key")
@@ -101,7 +101,7 @@ public class SecNtfySwifty {
         let userDefaults = UserDefaults(suiteName: _bundleGroup)!
         do {
             if (!_publicKey.isEmpty || !_privateKey.isEmpty) {
-                let keyPair = try RSA(keySize: 1024)
+                let keyPair = try RSA(keySize: 2048)
                 _privateKey = try keyPair.externalRepresentation().base64EncodedString()
                 _publicKey = try keyPair.publicKeyExternalRepresentation().base64EncodedString()
                 ntfyDevice.D_PublicKey = _publicKey
