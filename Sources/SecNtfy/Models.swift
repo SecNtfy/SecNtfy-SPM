@@ -22,6 +22,18 @@ extension String {
         guard let data = Data(base64Encoded: self) else { return nil }
         return String(data: data, encoding: .utf8)
     }
+    
+#if os(macOS)
+    func getMacModelIdentifier() -> String? {
+        var size: Int = 0
+        sysctlbyname("hw.model", nil, &size, nil, 0)
+        
+        var model = [CChar](repeating: 0, count: size)
+        sysctlbyname("hw.model", &model, &size, nil, 0)
+        
+        return String(cString: model)
+    }
+#endif
 }
 
 public struct ResultHandler : Codable, Sendable {
@@ -256,6 +268,8 @@ public enum Model : String {
          
          unrecognized       = "?unrecognized?"
 }
+
+#if os(iOS) || os(tvOS) 
 
 // #-#-#-#-#-#-#-#-#-#-#-#-#
 // MARK: UIDevice extensions
@@ -506,3 +520,4 @@ public extension UIDevice {
         return model
     }
 }
+#endif
