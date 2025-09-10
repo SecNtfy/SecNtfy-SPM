@@ -239,6 +239,11 @@ public enum Model : String {
          iPhone16Plus       = "iPhone 16 Plus",
          iPhone16Pro        = "iPhone 16 Pro",
          iPhone16ProMax     = "iPhone 16 Pro Max",
+         iPhone16e          = "iPhone 16e",
+         iPhoneAir          = "iPhone Air",
+         iPhone17           = "iPhone 17",
+         iPhone17Pro        = "iPhone 17 Pro",
+         iPhone17ProMax     = "iPhone 17 Pro Max",
          
          // Apple Watch
          AppleWatch1         = "Apple Watch 1gen",
@@ -449,6 +454,11 @@ public extension UIDevice {
             "iPhone17,2" : .iPhone16ProMax,
             "iPhone17,3" : .iPhone16,
             "iPhone17,4" : .iPhone16Plus,
+            "iPhone17,5" : .iPhone16e,
+            "iPhone18,1" : .iPhone17Pro,
+            "iPhone18,2" : .iPhone17ProMax,
+            "iPhone18,3" : .iPhone17,
+            "iPhone18,4" : .iPhoneAir,
             
             // Apple Watch
             "Watch1,1" : .AppleWatch1,
