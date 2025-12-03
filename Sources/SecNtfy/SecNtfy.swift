@@ -275,7 +275,7 @@ public class SecNtfySwifty {
     }
     
     @MainActor
-    public func MessageReceived(msgId: String) async {
+    public func MessageReceived(msgId: String) async -> Bool {
         let urlString = "\(_apiUrl)/Message/Receive/\(msgId)"
         
         let JsonEncoder = JSONEncoder()
@@ -283,17 +283,17 @@ public class SecNtfySwifty {
         
         if (_deviceToken.isEmpty) {
             log.error("🔥 - Device Token is Empty")
-            return
+            return false
         }
         
         if (msgId.isEmpty) {
             log.error("🔥 - MessageId is Empty")
-            return
+            return false
         }
         
         guard let url = URL(string: urlString) else {
             log.error("🔥 - URL is not valid!")
-            return
+            return false
         }
         
         do {
@@ -307,9 +307,10 @@ public class SecNtfySwifty {
             let (data, _) = try await URLSession.shared.data(for: request)
             let result = try JsonDecoder.decode(Response.self, from: data)
             log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
+            return result.Status == 201
         } catch let error {
             log.error("🔥 - Failed to MessageReceived \(error.localizedDescription)")
-            return
+            return false
         }
     }
     
