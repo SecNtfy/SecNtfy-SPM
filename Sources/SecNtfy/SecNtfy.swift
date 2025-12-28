@@ -400,9 +400,9 @@ public class SecNtfySwifty {
         return msgReceived
     }
     
-    public static func OfflineDecryption(_ msg: String, _ bundleGroup: String = "de.sr.SecNtfy") -> String {
+    public static func OfflineDecryption(_ msg: String, _ bundleGroup: String = "de.sr.SecNtfy") -> String? {
         
-        var text = ""
+        var text = nil as String?
         let log = SwiftyBeaver.self
         let console = ConsoleDestination()  // log to Xcode Console
         let file = FileDestination()  // log to default swiftybeaver.log file
@@ -434,7 +434,7 @@ public class SecNtfySwifty {
                 throw CryptionError.EncodingBase64Error
             }
             let clearData = try privateKey.decrypt(encodedMsg.bytes, variant: .pksc1v15)
-            text = String(data: Data(clearData), encoding: .utf8) ?? ""
+            text = String(data: Data(clearData), encoding: .utf8) ?? nil as String?
             
         } catch CryptionError.EncodingError {
             log.error("🔥 - OfflineDecryption: Encoding failed")
