@@ -333,5 +333,130 @@ public class SecNtfySwifty {
         
         return processedString
     }
+    
+    public static func OfflineMessageReceived(_ msgId: String, _ bundleGroup: String = "de.sr.SecNtfy") async -> Bool {
+        var msgReceived = false
+        
+        let log = SwiftyBeaver.self
+        let console = ConsoleDestination()  // log to Xcode Console
+        let file = FileDestination()  // log to default swiftybeaver.log file
+        console.format = "$DHH:mm:ss$d $L $M"
+        // add the destinations to SwiftyBeaver
+        log.addDestination(console)
+        log.addDestination(file)
+        log.info("♻️ - Init OfflineMessageReceived")
+        
+        do {
+            let userDefaults = UserDefaults(suiteName: bundleGroup) ?? .standard
+            
+            if (userDefaults == UserDefaults.standard) {
+                throw CryptionError.UserDefaultsError
+            }
+            
+            let pubKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
+            let privKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
+            let apiUrl = userDefaults.string(forKey: "NTFY_API_URL") ?? ""
+            let deviceToken = userDefaults.string(forKey: "NTFY_DEVICE_TOKEN") ?? ""
+            
+            let urlString = "\(apiUrl)/Message/Receive/\(msgId)"
+            
+            let JsonEncoder = JSONEncoder()
+            let JsonDecoder = JSONDecoder()
+            
+            if (deviceToken.isEmpty) {
+                log.error("🔥 - Device Token is Empty")
+                return false
+            }
+            
+            if (msgId.isEmpty) {
+                log.error("🔥 - MessageId is Empty")
+                return false
+            }
+            
+            guard let url = URL(string: urlString) else {
+                log.error("🔥 - URL is not valid!")
+                return false
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")  // the request is JSON
+            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")        // the expected response is also JSON
+            request.setValue("\(deviceToken)", forHTTPHeaderField: "X-NTFYME-DEVICE-KEY")        // the expected response is also JSON
+            JsonEncoder.outputFormatting = .prettyPrinted
+            
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let result = try JsonDecoder.decode(Response.self, from: data)
+            log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
+            msgReceived = result.Status == 201
+            
+        } catch CryptionError.UserDefaultsError {
+            log.error("🔥 - OfflineMessageReceived: UserDefaults is standard bundleGroup not found or suiteName not found!")
+        } catch let error {
+            log.error("🔥 - OfflineMessageReceived: \(error.localizedDescription)")
+            return false
+        }
+        
+        return msgReceived
+    }
+    
+    public static func OfflineDecryption(_ msg: String, _ bundleGroup: String = "de.sr.SecNtfy") -> String {
+        
+        var text = ""
+        let log = SwiftyBeaver.self
+        let console = ConsoleDestination()  // log to Xcode Console
+        let file = FileDestination()  // log to default swiftybeaver.log file
+        console.format = "$DHH:mm:ss$d $L $M"
+        // add the destinations to SwiftyBeaver
+        log.addDestination(console)
+        log.addDestination(file)
+        log.info("♻️ - Init OfflineDecryption")
+        
+        do {
+            let userDefaults = UserDefaults(suiteName: bundleGroup) ?? .standard
+            
+            if (userDefaults == UserDefaults.standard) {
+                throw CryptionError.UserDefaultsError
+            }
+            
+            let pubKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
+            let privKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
+            let apiUrl = userDefaults.string(forKey: "NTFY_API_URL") ?? ""
+            let deviceToken = userDefaults.string(forKey: "NTFY_DEVICE_TOKEN") ?? ""
+            
+            let privateKeyData = Data(base64Encoded: privKey) ?? Data()
+            if (privateKeyData.isEmpty) {
+                throw CryptionError.EncodingBase64PrivateKeyError
+            }
+            let privateKey = try RSA(rawRepresentation: privateKeyData)
+            let encodedMsg = Data(base64Encoded: msg) ?? Data()
+            if (encodedMsg.isEmpty) {
+                throw CryptionError.EncodingBase64Error
+            }
+            let clearData = try privateKey.decrypt(encodedMsg.bytes, variant: .pksc1v15)
+            text = String(data: Data(clearData), encoding: .utf8) ?? ""
+            
+        } catch CryptionError.EncodingError {
+            log.error("🔥 - OfflineDecryption: Encoding failed")
+        } catch CryptionError.EncodingBase64PrivateKeyError {
+            log.error("🔥 - OfflineDecryption: PrivateKey Base64 Data failed")
+        } catch CryptionError.EncodingBase64Error {
+            log.error("🔥 - OfflineDecryption: Message Base64 Data failed")
+        } catch CryptionError.DecodingError {
+            log.error("🔥 - OfflineDecryption: Decoding failed")
+        } catch CryptionError.UserDefaultsError {
+            log.error("🔥 - OfflineDecryption: UserDefaults is standard bundleGroup not found or suiteName not found!")
+        } catch {
+            log.error("🔥 - OfflineDecryption: failed")
+        }
+        return text
+    }
 }
 
+enum CryptionError: Error {
+    case EncodingError
+    case EncodingBase64PrivateKeyError
+    case EncodingBase64Error
+    case DecodingError
+    case UserDefaultsError
+}
