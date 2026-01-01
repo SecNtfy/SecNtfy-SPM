@@ -334,69 +334,97 @@ public class SecNtfySwifty {
         return processedString
     }
     
-    public static func OfflineMessageReceived(_ msgId: String, _ bundleGroup: String = "de.sr.SecNtfy") async -> Bool {
+    public static func OfflineMessageReceived(_ msgId: String, _ bundleGroup: String = "de.sr.SecNtfy") -> Bool {
         var msgReceived = false
-        
+
         let log = SwiftyBeaver.self
-        let console = ConsoleDestination()  // log to Xcode Console
-        let file = FileDestination()  // log to default swiftybeaver.log file
+        let console = ConsoleDestination()
+        let file = FileDestination()
         console.format = "$DHH:mm:ss$d $L $M"
-        // add the destinations to SwiftyBeaver
         log.addDestination(console)
         log.addDestination(file)
         log.info("♻️ - Init OfflineMessageReceived")
-        
+
         do {
             let userDefaults = UserDefaults(suiteName: bundleGroup) ?? .standard
-            
-            if (userDefaults == UserDefaults.standard) {
+            if userDefaults == UserDefaults.standard {
                 throw CryptionError.UserDefaultsError
             }
-            
-            let pubKey = userDefaults.string(forKey: "NTFY_PUB_KEY") ?? ""
-            let privKey = userDefaults.string(forKey: "NTFY_PRIV_KEY") ?? ""
+
             let apiUrl = userDefaults.string(forKey: "NTFY_API_URL") ?? ""
             let deviceToken = userDefaults.string(forKey: "NTFY_DEVICE_TOKEN") ?? ""
-            
+
             let urlString = "\(apiUrl)/Message/Receive/\(msgId)"
-            
-            let JsonEncoder = JSONEncoder()
-            let JsonDecoder = JSONDecoder()
-            
-            if (deviceToken.isEmpty) {
+            let decoder = JSONDecoder()
+
+            if deviceToken.isEmpty {
                 log.error("🔥 - Device Token is Empty")
                 return false
             }
-            
-            if (msgId.isEmpty) {
+
+            if msgId.isEmpty {
                 log.error("🔥 - MessageId is Empty")
                 return false
             }
-            
+
             guard let url = URL(string: urlString) else {
                 log.error("🔥 - URL is not valid!")
                 return false
             }
-            
+
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
-            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")  // the request is JSON
-            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")        // the expected response is also JSON
-            request.setValue("\(deviceToken)", forHTTPHeaderField: "X-NTFYME-DEVICE-KEY")        // the expected response is also JSON
-            JsonEncoder.outputFormatting = .prettyPrinted
-            
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let result = try JsonDecoder.decode(Response.self, from: data)
+            request.timeoutInterval = 5
+            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+            request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
+            request.setValue(deviceToken, forHTTPHeaderField: "X-NTFYME-DEVICE-KEY")
+
+            // --- sync wait via semaphore (Swift 6 safe) ---
+            let semaphore = DispatchSemaphore(value: 0)
+            let dataBox = LockedBox<Data>()
+            let responseBox = LockedBox<URLResponse>()
+            let errorBox = LockedBox<Error>()
+
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                dataBox.set(data)
+                responseBox.set(response)
+                errorBox.set(error)
+                semaphore.signal()
+            }
+            task.resume()
+
+            guard semaphore.wait(timeout: .now() + 5) == .success else {
+                task.cancel()
+                log.error("🔥 - OfflineMessageReceived: timeout")
+                return false
+            }
+
+            if let err = errorBox.get() {
+                log.error("🔥 - OfflineMessageReceived: \(err.localizedDescription)")
+                return false
+            }
+
+            if let http = responseBox.get() as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+                log.error("🔥 - OfflineMessageReceived: HTTP \(http.statusCode)")
+                return false
+            }
+
+            guard let data = dataBox.get() else {
+                log.error("🔥 - OfflineMessageReceived: no data")
+                return false
+            }
+
+            let result = try decoder.decode(Response.self, from: data)
             log.info("♻️ - \(result.Message ?? "") \(result.Token ?? "")")
-            msgReceived = result.Status == 201
-            
+            msgReceived = (result.Status == 201)
+
         } catch CryptionError.UserDefaultsError {
             log.error("🔥 - OfflineMessageReceived: UserDefaults is standard bundleGroup not found or suiteName not found!")
-        } catch let error {
+        } catch {
             log.error("🔥 - OfflineMessageReceived: \(error.localizedDescription)")
             return false
         }
-        
+
         return msgReceived
     }
     
@@ -450,6 +478,20 @@ public class SecNtfySwifty {
             log.error("🔥 - OfflineDecryption: failed")
         }
         return text
+    }
+}
+
+public final class LockedBox<T>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _value: T?
+
+    func set(_ value: T?) {
+        lock.lock(); _value = value; lock.unlock()
+    }
+
+    func get() -> T? {
+        lock.lock(); defer { lock.unlock() }
+        return _value
     }
 }
 
