@@ -8,35 +8,9 @@
 import Foundation
 #if canImport(UIKit)
 import UIKit
-#elseif canImport(AppKit)
-import AppKit
 #endif
 
-extension String {
-
-    func base64Encoded() -> String? {
-        data(using: .utf8)?.base64EncodedString()
-    }
-
-    func base64Decoded() -> String? {
-        guard let data = Data(base64Encoded: self) else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-    
-#if os(macOS)
-    func getMacModelIdentifier() -> String? {
-        var size: Int = 0
-        sysctlbyname("hw.model", nil, &size, nil, 0)
-        
-        var model = [CChar](repeating: 0, count: size)
-        sysctlbyname("hw.model", &model, &size, nil, 0)
-        
-        return String(cString: model)
-    }
-#endif
-}
-
-public struct ResultHandler : Codable, Sendable {
+public struct ResultHandler: Codable, Sendable {
     public var token: String?
     public var bundleGroup: String?
     public var error: Error?
@@ -46,7 +20,7 @@ public struct ResultHandler : Codable, Sendable {
         case bundleGroup = "bundleGroup"
     }
     
-    init(token: String? = nil, bundleGroup: String? = nil, error: Error? = nil) {
+    public init(token: String? = nil, bundleGroup: String? = nil, error: Error? = nil) {
         self.token = token
         self.bundleGroup = bundleGroup
         self.error = error
@@ -126,19 +100,40 @@ struct Response : Sendable, Codable {
     }
 }
 
-enum NtfyError: Error {
-    case unknownError
-    case connectionError
-    case invalidCredentials
-    case invalidRequest
-    case notFound
+enum NtfyError: LocalizedError, Sendable {
+    case apiError(status: Int, message: String?)
+    case appGroupUnavailable
+    case configurationChanged
+    case httpStatus(Int, message: String?)
     case invalidResponse
-    case serverError
-    case serverUnavailable
-    case timeOut
-    case unsuppotedURL
+    case missingAPIKey
+    case missingAPIURL
     case noDevice
- }
+    case unsupportedURL
+
+    var errorDescription: String? {
+        switch self {
+        case let .apiError(status, message):
+            return message?.isEmpty == false ? message : "SecNtfy API error (status \(status))"
+        case .appGroupUnavailable:
+            return "The configured App Group is unavailable."
+        case .configurationChanged:
+            return "The SecNtfy configuration changed while the request was running."
+        case let .httpStatus(status, message):
+            return message?.isEmpty == false ? message : "SecNtfy returned HTTP status \(status)."
+        case .invalidResponse:
+            return "SecNtfy returned an invalid response."
+        case .missingAPIKey:
+            return "The SecNtfy API key is missing."
+        case .missingAPIURL:
+            return "The SecNtfy API URL is missing."
+        case .noDevice:
+            return "SecNtfy has not been configured for this device."
+        case .unsupportedURL:
+            return "The SecNtfy API URL is invalid."
+        }
+    }
+}
 
 public enum Model : String {
     

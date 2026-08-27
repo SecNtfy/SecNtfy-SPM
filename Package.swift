@@ -1,5 +1,4 @@
-// swift-tools-version: 5.9
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 6.0
 
 import PackageDescription
 
@@ -7,29 +6,24 @@ let package = Package(
     name: "SecNtfy",
     platforms: [.iOS(.v15), .macOS(.v13), .watchOS(.v9)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "SecNtfy",
-            targets: ["SecNtfy"]),
+        .library(name: "SecNtfy", targets: ["SecNtfy"]),
     ],
     dependencies: [
         .package(url: "https://github.com/SwiftyBeaver/SwiftyBeaver.git", .upToNextMajor(from: "2.0.0")),
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.3.0")
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.10.0"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "SecNtfy",
-            dependencies: ["CryptoSwift", "SwiftyBeaver"],
-            swiftSettings: [
-                /// Xcode 15. Remove `=targeted` to use the default `complete`.
-                .enableExperimentalFeature("StrictConcurrency")
+            dependencies: [
+                .product(name: "CryptoSwift", package: "CryptoSwift"),
+                .product(name: "SwiftyBeaver", package: "SwiftyBeaver"),
             ]
         ),
         .testTarget(
             name: "SecNtfyTests",
-            dependencies: ["SecNtfy"]),
+            dependencies: ["SecNtfy"]
+        ),
     ],
-    swiftLanguageVersions: [.version("6")]
+    swiftLanguageModes: [.v6]
 )
