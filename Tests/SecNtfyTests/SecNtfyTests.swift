@@ -47,6 +47,58 @@ final class SecNtfyTests: XCTestCase {
         XCTAssertNil(decoded.error)
     }
 
+    func testDeviceRegistrationMetadataUsesBackendFieldNames() throws {
+        let device = NTFY_Devices(
+            D_ID: 0,
+            D_APP_ID: 0,
+            D_OS: 1,
+            D_OS_Version: "27.0",
+            D_Model: "iPhone Duo",
+            D_IsSimulator: false,
+            D_IsDebug: true,
+            D_AppVersion: "1.2.0",
+            D_APN_ID: "apns-token",
+            D_Android_ID: "",
+            D_PublicKey: "public-key",
+            D_NTFY_Token: ""
+        )
+
+        let data = try JSONEncoder().encode(device)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+        XCTAssertEqual(json["D_IsSimulator"] as? Bool, false)
+        XCTAssertEqual(json["D_IsDebug"] as? Bool, true)
+        XCTAssertEqual(json["D_AppVersion"] as? String, "1.2.0")
+    }
+
+    func testDeviceMetadataRemainsOptionalForLegacyPayloads() throws {
+        let device = try JSONDecoder().decode(
+            NTFY_Devices.self,
+            from: Data(#"{"D_Model":"iPhone"}"#.utf8)
+        )
+
+        XCTAssertNil(device.D_IsSimulator)
+        XCTAssertNil(device.D_IsDebug)
+        XCTAssertNil(device.D_AppVersion)
+
+        let encoded = try JSONEncoder().encode(device)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        XCTAssertNil(json["D_IsSimulator"])
+        XCTAssertNil(json["D_IsDebug"])
+        XCTAssertNil(json["D_AppVersion"])
+    }
+
+    func testAppVersionNormalizationMatchesBackendLimit() {
+        XCTAssertEqual(SecNtfySwifty.normalizedAppVersion(" 1.2.0 "), "1.2.0")
+        XCTAssertNil(SecNtfySwifty.normalizedAppVersion("  "))
+        XCTAssertEqual(
+            SecNtfySwifty.normalizedAppVersion(String(repeating: "a", count: 64)),
+            String(repeating: "a", count: 64)
+        )
+        XCTAssertNil(SecNtfySwifty.normalizedAppVersion(String(repeating: "a", count: 65)))
+        XCTAssertNil(SecNtfySwifty.normalizedAppVersion(String(repeating: "🙂", count: 33)))
+    }
+
     @MainActor
     func testInitializePersistsAndUpdatesExplicitAPIURL() {
         let suiteName = "SecNtfyTests.\(UUID().uuidString)"

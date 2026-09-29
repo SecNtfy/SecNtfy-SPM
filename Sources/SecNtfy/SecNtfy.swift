@@ -160,6 +160,22 @@ public final class SecNtfySwifty: @unchecked Sendable {
         let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
         #endif
 
+        #if targetEnvironment(simulator)
+        let isSimulator = true
+        #else
+        let isSimulator = false
+        #endif
+
+        #if DEBUG
+        let isDebug = true
+        #else
+        let isDebug = false
+        #endif
+
+        let appVersion = Self.normalizedAppVersion(
+            Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        )
+
         withState { state in
             state.apiKey = apiKey
             state.device = NTFY_Devices(
@@ -168,6 +184,9 @@ public final class SecNtfySwifty: @unchecked Sendable {
                 D_OS: 1,
                 D_OS_Version: osVersion,
                 D_Model: model,
+                D_IsSimulator: isSimulator,
+                D_IsDebug: isDebug,
+                D_AppVersion: appVersion,
                 D_APN_ID: state.apnsToken,
                 D_Android_ID: "",
                 D_PublicKey: state.publicKey,
@@ -427,6 +446,15 @@ public final class SecNtfySwifty: @unchecked Sendable {
             url.appendPathComponent(component)
         }
         return url
+    }
+
+    static func normalizedAppVersion(_ value: String?) -> String? {
+        guard let version = value?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !version.isEmpty,
+              version.utf16.count <= 64 else {
+            return nil
+        }
+        return version
     }
 
     private static func request(url: URL, timeout: TimeInterval = 15) -> URLRequest {

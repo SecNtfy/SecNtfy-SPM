@@ -58,6 +58,12 @@ struct NTFY_Devices : Sendable, Codable {
     /// Device Model
     /// </summary>
     var D_Model: String?
+    /// Whether the client runs in a simulator.
+    var D_IsSimulator: Bool?
+    /// Whether the client is a debug build.
+    var D_IsDebug: Bool?
+    /// Version of the app registering this device.
+    var D_AppVersion: String?
     /// <summary>
     /// Device APN ID
     /// </summary>
@@ -81,6 +87,9 @@ struct NTFY_Devices : Sendable, Codable {
         case D_OS = "D_OS"
         case D_OS_Version = "D_OS_Version"
         case D_Model = "D_Model"
+        case D_IsSimulator = "D_IsSimulator"
+        case D_IsDebug = "D_IsDebug"
+        case D_AppVersion = "D_AppVersion"
         case D_APN_ID = "D_APN_ID"
         case D_Android_ID = "D_Android_ID"
         case D_PublicKey = "D_PublicKey"
