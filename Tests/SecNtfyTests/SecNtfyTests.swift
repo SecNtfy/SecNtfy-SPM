@@ -56,7 +56,7 @@ final class SecNtfyTests: XCTestCase {
             D_Model: "iPhone Duo",
             D_IsSimulator: false,
             D_IsDebug: true,
-            D_AppVersion: "1.2.0",
+            D_AppVersion: "1.2.0 (21)",
             D_APN_ID: "apns-token",
             D_Android_ID: "",
             D_PublicKey: "public-key",
@@ -68,7 +68,7 @@ final class SecNtfyTests: XCTestCase {
 
         XCTAssertEqual(json["D_IsSimulator"] as? Bool, false)
         XCTAssertEqual(json["D_IsDebug"] as? Bool, true)
-        XCTAssertEqual(json["D_AppVersion"] as? String, "1.2.0")
+        XCTAssertEqual(json["D_AppVersion"] as? String, "1.2.0 (21)")
     }
 
     func testDeviceMetadataRemainsOptionalForLegacyPayloads() throws {
@@ -90,6 +90,8 @@ final class SecNtfyTests: XCTestCase {
 
     func testAppVersionNormalizationMatchesBackendLimit() {
         XCTAssertEqual(SecNtfySwifty.normalizedAppVersion(" 1.2.0 "), "1.2.0")
+        XCTAssertEqual(SecNtfySwifty.normalizedAppVersion(" 2.1 ", build: " 21 "), "2.1 (21)")
+        XCTAssertEqual(SecNtfySwifty.normalizedAppVersion("2.1", build: " "), "2.1")
         XCTAssertNil(SecNtfySwifty.normalizedAppVersion("  "))
         XCTAssertEqual(
             SecNtfySwifty.normalizedAppVersion(String(repeating: "a", count: 64)),
@@ -97,6 +99,10 @@ final class SecNtfyTests: XCTestCase {
         )
         XCTAssertNil(SecNtfySwifty.normalizedAppVersion(String(repeating: "a", count: 65)))
         XCTAssertNil(SecNtfySwifty.normalizedAppVersion(String(repeating: "🙂", count: 33)))
+        XCTAssertEqual(
+            SecNtfySwifty.normalizedAppVersion(String(repeating: "a", count: 64), build: "21"),
+            String(repeating: "a", count: 64)
+        )
     }
 
     @MainActor

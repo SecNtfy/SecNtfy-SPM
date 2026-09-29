@@ -173,7 +173,8 @@ public final class SecNtfySwifty: @unchecked Sendable {
         #endif
 
         let appVersion = Self.normalizedAppVersion(
-            Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+            Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+            build: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
         )
 
         withState { state in
@@ -448,13 +449,20 @@ public final class SecNtfySwifty: @unchecked Sendable {
         return url
     }
 
-    static func normalizedAppVersion(_ value: String?) -> String? {
+    static func normalizedAppVersion(_ value: String?, build: String? = nil) -> String? {
         guard let version = value?.trimmingCharacters(in: .whitespacesAndNewlines),
               !version.isEmpty,
               version.utf16.count <= 64 else {
             return nil
         }
-        return version
+
+        guard let build = build?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !build.isEmpty else {
+            return version
+        }
+
+        let fullVersion = "\(version) (\(build))"
+        return fullVersion.utf16.count <= 64 ? fullVersion : version
     }
 
     private static func request(url: URL, timeout: TimeInterval = 15) -> URLRequest {
