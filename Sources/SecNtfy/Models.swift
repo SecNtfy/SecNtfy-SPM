@@ -165,8 +165,13 @@ public enum Model : String {
          iPad8              = "iPad 8", //iPad 2020
          iPad9              = "iPad 9", //iPad 2021
          iPad10             = "iPad 10", //iPad 2022
+         iPadA16            = "iPad (A16)",
          iPadAirM2_11       = "iPad Air M2 11\"",
          iPadAirM2_13       = "iPad Air M2 13\"",
+         iPadAirM3_11       = "iPad Air M3 11\"",
+         iPadAirM3_13       = "iPad Air M3 13\"",
+         iPadAirM4_11       = "iPad Air M4 11\"",
+         iPadAirM4_13       = "iPad Air M4 13\"",
          
          //iPad Mini
          iPadMini           = "iPad Mini",
@@ -175,6 +180,7 @@ public enum Model : String {
          iPadMini4          = "iPad Mini 4",
          iPadMini5          = "iPad Mini 5",
          iPadMini6          = "iPad Mini 6",
+         iPadMiniA17Pro     = "iPad mini (A17 Pro)",
          
          //iPad Pro
          iPadPro9_7         = "iPad Pro 9.7\"",
@@ -182,13 +188,17 @@ public enum Model : String {
          iPadPro11          = "iPad Pro 11\"",
          iPadPro2_11        = "iPad Pro 11\" 2nd gen",
          iPadPro3_11        = "iPad Pro 11\" 3rd gen",
+         iPadPro4_11        = "iPad Pro 11\" 4th gen",
          iPadPro12_9        = "iPad Pro 12.9\"",
          iPadPro2_12_9      = "iPad Pro 2 12.9\"",
          iPadPro3_12_9      = "iPad Pro 3 12.9\"",
          iPadPro4_12_9      = "iPad Pro 4 12.9\"",
          iPadPro5_12_9      = "iPad Pro 5 12.9\"",
+         iPadPro6_12_9      = "iPad Pro 12.9\" 6th gen",
          iPadProM4_11       = "iPad Pro M4 11\"",
          iPadProM4_13       = "iPad Pro M4 13\"",
+         iPadProM5_11       = "iPad Pro M5 11\"",
+         iPadProM5_13       = "iPad Pro M5 13\"",
          
          //iPhone
          iPhone4            = "iPhone 4",
@@ -239,6 +249,10 @@ public enum Model : String {
          iPhone17           = "iPhone 17",
          iPhone17Pro        = "iPhone 17 Pro",
          iPhone17ProMax     = "iPhone 17 Pro Max",
+         iPhone17e          = "iPhone 17e",
+         iPhone18Pro        = "iPhone 18 Pro",
+         iPhone18ProMax     = "iPhone 18 Pro Max",
+         iPhoneDuo          = "iPhone Duo",
          
          // Apple Watch
          AppleWatch1         = "Apple Watch 1gen",
@@ -256,6 +270,11 @@ public enum Model : String {
          AppleWatchS9        = "Apple Watch Series 9",
          AppleWatchUltra2        = "Apple Watch Ultra 2",
          AppleWatchS10        = "Apple Watch Series 10",
+         AppleWatchUltra3        = "Apple Watch Ultra 3",
+         AppleWatchSE3        = "Apple Watch SE 3",
+         AppleWatchS11        = "Apple Watch Series 11",
+         AppleWatchUltra4        = "Apple Watch Ultra 4",
+         AppleWatchS12        = "Apple Watch Series 12",
          
          //Apple TV
          AppleTV1           = "Apple TV 1gen",
@@ -325,6 +344,8 @@ public extension UIDevice {
             "iPad12,2"  : .iPad9,
             "iPad13,18" : .iPad10,
             "iPad13,19" : .iPad10,
+            "iPad15,7"  : .iPadA16,
+            "iPad15,8"  : .iPadA16,
             
             //iPad Mini
             "iPad2,5"   : .iPadMini,
@@ -342,6 +363,8 @@ public extension UIDevice {
             "iPad11,2"  : .iPadMini5,
             "iPad14,1"  : .iPadMini6,
             "iPad14,2"  : .iPadMini6,
+            "iPad16,1"  : .iPadMiniA17Pro,
+            "iPad16,2"  : .iPadMiniA17Pro,
             
             //iPad Pro
             "iPad6,3"   : .iPadPro9_7,
@@ -362,6 +385,8 @@ public extension UIDevice {
             "iPad13,5"  : .iPadPro3_11,
             "iPad13,6"  : .iPadPro3_11,
             "iPad13,7"  : .iPadPro3_11,
+            "iPad14,3"  : .iPadPro4_11,
+            "iPad14,4"  : .iPadPro4_11,
             "iPad8,5"   : .iPadPro3_12_9,
             "iPad8,6"   : .iPadPro3_12_9,
             "iPad8,7"   : .iPadPro3_12_9,
@@ -372,10 +397,16 @@ public extension UIDevice {
             "iPad13,9"  : .iPadPro5_12_9,
             "iPad13,10" : .iPadPro5_12_9,
             "iPad13,11" : .iPadPro5_12_9,
+            "iPad14,5"  : .iPadPro6_12_9,
+            "iPad14,6"  : .iPadPro6_12_9,
             "iPad16,3"  : .iPadProM4_11,
             "iPad16,4"  : .iPadProM4_11,
             "iPad16,5"  : .iPadProM4_13,
             "iPad16,6"  : .iPadProM4_13,
+            "iPad17,1"  : .iPadProM5_11,
+            "iPad17,2"  : .iPadProM5_11,
+            "iPad17,3"  : .iPadProM5_13,
+            "iPad17,4"  : .iPadProM5_13,
             
             //iPad Air
             "iPad4,1"   : .iPadAir,
@@ -393,6 +424,14 @@ public extension UIDevice {
             "iPad14,9"  : .iPadAirM2_11,
             "iPad14,10"  : .iPadAirM2_13,
             "iPad14,11"  : .iPadAirM2_13,
+            "iPad15,3"  : .iPadAirM3_11,
+            "iPad15,4"  : .iPadAirM3_11,
+            "iPad15,5"  : .iPadAirM3_13,
+            "iPad15,6"  : .iPadAirM3_13,
+            "iPad16,8"  : .iPadAirM4_11,
+            "iPad16,9"  : .iPadAirM4_11,
+            "iPad16,10" : .iPadAirM4_13,
+            "iPad16,11" : .iPadAirM4_13,
             
             //iPhone
             "iPhone3,1" : .iPhone4,
@@ -454,6 +493,11 @@ public extension UIDevice {
             "iPhone18,2" : .iPhone17ProMax,
             "iPhone18,3" : .iPhone17,
             "iPhone18,4" : .iPhoneAir,
+            "iPhone18,5" : .iPhone17e,
+            "iPhone19,2" : .iPhone18Pro,
+            "iPhone19,3" : .iPhone18ProMax,
+            "iPhone19,4" : .iPhoneDuo,
+            "iPhone19,7" : .iPhone18ProMax,
             
             // Apple Watch
             "Watch1,1" : .AppleWatch1,
@@ -504,6 +548,20 @@ public extension UIDevice {
             "Watch7,9" : .AppleWatchS10,
             "Watch7,10" : .AppleWatchS10,
             "Watch7,11" : .AppleWatchS10,
+            "Watch7,12" : .AppleWatchUltra3,
+            "Watch7,13" : .AppleWatchSE3,
+            "Watch7,14" : .AppleWatchSE3,
+            "Watch7,15" : .AppleWatchSE3,
+            "Watch7,16" : .AppleWatchSE3,
+            "Watch7,17" : .AppleWatchS11,
+            "Watch7,18" : .AppleWatchS11,
+            "Watch7,19" : .AppleWatchS11,
+            "Watch7,20" : .AppleWatchS11,
+            "Watch8,1"  : .AppleWatchUltra4,
+            "Watch8,2"  : .AppleWatchS12,
+            "Watch8,3"  : .AppleWatchS12,
+            "Watch8,4"  : .AppleWatchS12,
+            "Watch8,5"  : .AppleWatchS12,
             
             //Apple TV
             "AppleTV1,1" : .AppleTV1,
